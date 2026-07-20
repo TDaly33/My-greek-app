@@ -1,4 +1,4 @@
-const CACHE_NAME = "rimata-v13";
+const CACHE_NAME = "rimata-v15";
 const ASSETS = [
   "./",
   "./index.html",

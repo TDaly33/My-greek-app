@@ -640,6 +640,13 @@ function wireDrillScreen() {
     e.preventDefault();
     checkAnswer();
   });
+  // Stop the Check button from stealing focus (and dismissing the iOS
+  // keyboard) when tapped - mousedown/touchstart fire before the button
+  // would normally take focus, so preventing default here keeps focus
+  // (and the keyboard) on the answer input the whole time.
+  ["mousedown", "touchstart"].forEach(evt => {
+    els.checkBtn.addEventListener(evt, e => e.preventDefault());
+  });
   els.hintBtn.addEventListener("click", () => {
     els.hintText.innerHTML = hintHTML(currentItem());
     els.hintText.hidden = false;
@@ -678,6 +685,7 @@ function checkAnswer() {
     els.hintBtn.hidden = true;
     els.tryAgainText.hidden = true;
     updateScoreLive();
+    els.answerInput.focus();
     setTimeout(advance, 420);
   } else {
     if (!questionAlreadyMissed) {
@@ -830,5 +838,6 @@ function showScreen(name) {
     document.getElementById(`screen-${n}`).hidden = n !== name;
   });
   els.startBar.hidden = name !== "setup";
+  document.body.classList.toggle("drill-active", name === "drill");
   window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
 }
