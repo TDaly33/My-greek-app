@@ -58,6 +58,7 @@ let els = {};
 document.addEventListener("DOMContentLoaded", async () => {
   cacheEls();
   initTheme();
+  initViewportFix();
   registerServiceWorker();
   try {
     await loadData();
@@ -101,6 +102,33 @@ function applyTheme(theme) {
     els.themeToggle.textContent = "🌙";
     if (meta) meta.setAttribute("content", "#F3ECDC");
   }
+}
+
+// iOS Safari doesn't reliably shrink CSS vh/dvh units for the on-screen
+// keyboard - vh/dvh mainly account for the browser's own toolbar. The
+// keyboard-aware size is only available via window.visualViewport, which
+// this tracks into a CSS variable so the drill screen can size itself to
+// what's actually visible above the keyboard.
+function initViewportFix() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+
+  function update() {
+    document.documentElement.style.setProperty("--vvh", `${vv.height}px`);
+  }
+  vv.addEventListener("resize", update);
+  vv.addEventListener("scroll", update);
+  update();
+
+  // iOS can still try to auto-scroll the page to keep a focused input
+  // visible above the keyboard, even with overflow:hidden set. Since the
+  // drill screen is already sized to fit the real visible area, snap any
+  // stray scroll back to the top rather than letting the page drift.
+  window.addEventListener("scroll", () => {
+    if (document.body.classList.contains("drill-active") && window.scrollY !== 0) {
+      window.scrollTo(0, 0);
+    }
+  });
 }
 
 function cacheEls() {
