@@ -587,6 +587,7 @@ function updateTimerDisplay(seconds) {
 }
 
 let questionAlreadyMissed = false;
+let awaitingAdvance = false;
 
 function currentItem() {
   if (session.opts.mode === "timer" && session.index >= session.items.length) {
@@ -598,6 +599,7 @@ function currentItem() {
 function renderQuestion() {
   const item = currentItem();
   questionAlreadyMissed = false;
+  awaitingAdvance = false;
   updateScoreLive();
 
   if (session.opts.mode === "count") {
@@ -661,6 +663,7 @@ function wireDrillScreen() {
 }
 
 function checkAnswer() {
+  if (awaitingAdvance) return;
   const item = currentItem();
   const userVal = els.answerInput.value;
   const correct = isCorrect(userVal, item.correct, session.lenient);
@@ -670,7 +673,7 @@ function checkAnswer() {
     playTone("correct");
     els.answerInput.classList.remove("is-wrong");
     els.answerInput.classList.add("is-correct");
-    els.answerInput.disabled = true;
+    awaitingAdvance = true;
     els.checkBtn.disabled = true;
     els.hintBtn.hidden = true;
     els.tryAgainText.hidden = true;
