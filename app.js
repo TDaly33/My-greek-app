@@ -28,6 +28,12 @@ const PERSON_LABELS = PERSON_META.map(p => p.label);
 
 const IRREGULAR_IDS = new Set(["eimai", "exo", "pao", "leo", "troo", "xero", "prepei"]);
 
+const DIRECTION_META = [
+  { key: "open-closed", label: "Open → Closed" },
+  { key: "closed-open", label: "Closed → Open" },
+  { key: "random",      label: "Random" },
+];
+
 const CLASS_META = [
   { key: "irregular", label: "Irregular" },
   { key: "A",         label: "Class A (-ω)" },
@@ -123,7 +129,7 @@ function cacheEls() {
     "screen-setup","screen-setup-oc","screen-drill","screen-results",
     "tenseChips","personChips","voiceChips","classChips",
     "verbList","verbSearch","verbSelectedCount",
-    "classChipsOC","verbListOC","verbSearchOC","verbSelectedCountOC",
+    "classChipsOC","verbListOC","verbSearchOC","verbSelectedCountOC","directionChips",
     "timerField","timerMinutes","timerFieldOC","timerMinutesOC","accentLenientOC",
     "accentLenient","startBtn","setupError",
     "quitBtn","progressFill","progressLabel","drillMeta","startBar","startBarSummary",
@@ -177,6 +183,12 @@ function buildFilterUI() {
   VOICE_META.forEach((v, i) => {
     els.voiceChips.appendChild(makeChip(v.key, v.label, i === 0));
   });
+
+  els.directionChips.innerHTML = "";
+  DIRECTION_META.forEach((d, i) => {
+    els.directionChips.appendChild(makeChip(d.key, d.label, i === 0));
+  });
+  els.directionChips.addEventListener("click", e => onChipClick(e, true));
 
   [els.classChips, els.classChipsOC].forEach(container => {
     container.innerHTML = "";
@@ -391,6 +403,7 @@ function saveSettings() {
       lenient: els.accentLenient.checked,
       minutesOC: els.timerMinutesOC.value,
       lenientOC: els.accentLenientOC.checked,
+      direction: singleSelected(els.directionChips),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch (e) { /* storage unavailable — ignore */ }
@@ -430,6 +443,7 @@ function restoreSettings() {
   }
   if (s.minutes) els.timerMinutes.value = s.minutes;
   if (typeof s.lenient === "boolean") els.accentLenient.checked = s.lenient;
+  if (s.direction) setSingle(els.directionChips, s.direction);
   if (s.minutesOC) els.timerMinutesOC.value = s.minutesOC;
   if (typeof s.lenientOC === "boolean") els.accentLenientOC.checked = s.lenientOC;
 }
@@ -479,7 +493,7 @@ function buildPool(tenseKeys, personIdxSet, voiceKey, verbIds) {
   return pool;
 }
 
-function buildPoolOpenClosed(verbIds) {
+function buildPoolOpenClosed(verbIds, direction) {
   const pool = [];
   verbsIndex.forEach(vIdx => {
     if (!verbIds.has(vIdx.id)) return;
@@ -494,15 +508,25 @@ function buildPoolOpenClosed(verbIds) {
     const closedForm = splitParticle(forms.subjunctiveAorist[0]).word;
     if (!closedForm || closedForm === openForm) return; // safety net, shouldn't trigger given the exclusion list
 
-    pool.push({
+    const makeItem = dir => ({
       verb: vIdx,
-      data: { lemma: openForm, translation: vIdx.translation },
+      data: {
+        lemma: dir === "closed-open" ? closedForm : openForm,
+        translation: vIdx.translation,
+      },
       voiceSide,
-      tenseMeta: { label: "Open → Closed", splittable: false },
+      tenseMeta: { label: dir === "closed-open" ? "Closed → Open" : "Open → Closed", splittable: false },
       personIdx: null,
-      correct: closedForm,
+      correct: dir === "closed-open" ? openForm : closedForm,
       forms: null,
     });
+
+    if (direction === "random") {
+      pool.push(makeItem("open-closed"));
+      pool.push(makeItem("closed-open"));
+    } else {
+      pool.push(makeItem(direction));
+    }
   });
   return pool;
 }
@@ -632,7 +656,8 @@ function startConjugateSession() {
 
 function startOpenClosedSession() {
   if (!selectedVerbIds.size) return showSetupError("Pick at least one verb.");
-  const pool = buildPoolOpenClosed(selectedVerbIds);
+  const direction = singleSelected(els.directionChips) || "open-closed";
+  const pool = buildPoolOpenClosed(selectedVerbIds, direction);
   if (!pool.length) return showSetupError("None of the selected verbs work for this game — try selecting more.");
 
   saveSettings();

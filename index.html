@@ -115,12 +115,17 @@
         <button type="button" class="link-btn back-to-landing" data-goto="landing">← All games</button>
         <p class="eyebrow">build a practice set</p>
         <h1 class="h1">Open → Closed</h1>
-        <p class="hint" style="margin-top:0;">You'll see the open (imperfective) form of a verb and type its
-          closed (perfective) form — always 1st person singular, no particle needed.</p>
+        <p class="hint" style="margin-top:0;">You'll see one form of a verb and type the other — always 1st
+          person singular, no particle needed.</p>
+
+        <div class="field-group">
+          <h2 class="h2"><span class="step-num">1</span>Direction</h2>
+          <div class="chip-grid" id="directionChips"></div>
+        </div>
 
         <div class="field-group">
           <div class="verbs-head">
-            <h2 class="h2"><span class="step-num">1</span>Verbs <span class="count-badge" id="verbSelectedCountOC"></span></h2>
+            <h2 class="h2"><span class="step-num">2</span>Verbs <span class="count-badge" id="verbSelectedCountOC"></span></h2>
             <input type="search" id="verbSearchOC" class="search-input" placeholder="search…">
           </div>
           <div class="chip-row-actions">
@@ -132,7 +137,7 @@
         </div>
 
         <div class="field-group">
-          <h2 class="h2"><span class="step-num">2</span>Practice length</h2>
+          <h2 class="h2"><span class="step-num">3</span>Practice length</h2>
           <p class="hint" style="margin-top:0;">Unlimited cards — verbs repeat as needed until time runs out.</p>
           <label class="length-field" id="timerFieldOC">
             <span>Minutes</span>
@@ -141,7 +146,7 @@
         </div>
 
         <div class="field-group" style="margin-bottom:4px;">
-          <h2 class="h2"><span class="step-num">3</span>Answer checking</h2>
+          <h2 class="h2"><span class="step-num">4</span>Answer checking</h2>
           <label class="toggle">
             <input type="checkbox" id="accentLenientOC" checked>
             <span>Ignore accent marks</span>
