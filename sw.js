@@ -1,4 +1,4 @@
-const CACHE_NAME = "rimata-v20";
+const CACHE_NAME = "greek-time-v21";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,7 +7,6 @@ const ASSETS = [
   "./manifest.json",
   "./verbs_index.json",
   "./verbs_conjugated.json",
-  "./icon.svg",
   "./icon-192.png",
   "./icon-512.png",
   "./fonts/Lora.woff",

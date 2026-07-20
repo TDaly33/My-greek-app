@@ -1,4 +1,4 @@
-# Ρήματα — Greek Verb Drill
+# Greek Time — Verb Drill
 
 A practice app for the 79 verbs in the dataset. Pick tenses, voice, and a
 verb group, then type the conjugated forms. Works fully offline once set up.
@@ -38,7 +38,6 @@ greek-app/
 - `sw.js`
 - `verbs_index.json`
 - `verbs_conjugated.json`
-- `icon.svg`
 - `icon-192.png`
 - `icon-512.png`
 - `icon-maskable.png`
@@ -111,32 +110,22 @@ still work — that's the service worker doing its job.
 
 Phones require a real `https://` web address to allow "install to home
 screen" and offline caching — a plain local address from Part 1 won't
-qualify. Two free ways to get one:
+qualify. **GitHub Pages** gets you one for free, and works entirely from
+a phone if you're away from your computer.
 
-- **Netlify Drop** — faster, but needs a computer and can be unreliable
-  when attempted from a phone browser.
-- **GitHub Pages** — a couple more steps, but fully reliable and works
-  entirely from a phone if you're away from your computer.
+### Step 1: Get the files onto your phone
 
-### Option A: Netlify Drop (from a computer)
+Download all 11 files (see Part 0) onto your iPhone — tap each, then
+Share → **Save to Files**, into one folder so they're easy to find later.
 
-**Step 1:** Open **[app.netlify.com/drop](https://app.netlify.com/drop)**
-on your computer.
+**Important:** when saving, make sure filenames keep their underscores
+(`verbs_index.json`, not `verbs index.json`) — some iOS save flows quietly
+turn underscores into spaces, which breaks the app since it looks for the
+exact filename. Double-check the two `verbs_*.json` files especially.
 
-**Step 2:** Drag your whole `greek-app` folder (the one containing
-`index.html`) onto the page where it says to drop files.
+### Step 2: Create a free GitHub account
 
-**Step 3:** Netlify gives you a URL like
-`https://random-name-12345.netlify.app` — a live, permanent address for
-your app. Skip to "Add it to your home screen" below.
-
-### Option B: GitHub Pages (works entirely from your phone)
-
-**Step 1: Get the files onto your phone.** Download all 11 files (see
-Part 0) onto your iPhone — tap each, then Share → **Save to Files**, into
-one folder so they're easy to find later.
-
-**Step 2: Create a free GitHub account** (skip if you have one) at
+Skip if you have one. Go to
 **[github.com/join](https://github.com/join)** in Safari.
 
 **Step 3: Create a new repository.**
@@ -154,6 +143,10 @@ one folder so they're easy to find later.
    **Commit changes**
 4. If multi-select is fussy, upload in a few smaller batches instead —
    repeat "Add file → Upload files" 2–3 times
+5. Optional but recommended: add one more empty file named exactly
+   `.nojekyll` (tap **Add file → Create new file**, type the name, leave
+   it empty, commit) — prevents GitHub's default processing from
+   interfering with the app's files.
 
 **Step 5: Turn on GitHub Pages.**
 1. On the repo page, go to **Settings** (may be under a "..." menu, or
@@ -167,7 +160,7 @@ one folder so they're easy to find later.
 screen — your live URL appears, like
 `https://yourname.github.io/greek-app/`.
 
-### Add it to your home screen (either option)
+### Add it to your home screen
 
 Open your URL in:
 - **iPhone:** Safari (must be Safari, not Chrome)
@@ -193,8 +186,8 @@ airplane mode and open it again to confirm it still works.
 |---|---|
 | Blank page / "failed to fetch" | You opened `index.html` directly instead of via `http://localhost:8000` — go back to Part 1. |
 | "python3: command not found" | Try `python` instead, or install Python from python.org. |
-| Netlify page looks broken online | Make sure you dragged the *folder*, not a zip file, and that it contains `index.html` at the top level (not inside a subfolder). |
 | GitHub file upload not multi-selecting on iPhone | Upload files in smaller batches — repeat "Add file → Upload files" a few times instead of selecting all 11 at once. |
+| App loads but verbs won't load / "N/A" everywhere | Check the two `verbs_*.json` files in your repo's file list on github.com — iOS sometimes silently turns underscores into spaces when saving files (`verbs index.json` instead of `verbs_index.json`). If you see a space, tap the file → pencil (edit) icon → fix the filename → Commit changes. |
 | Doesn't work offline on phone | Open the app once while online first — it needs that first visit to cache the files. |
 | **You updated the files but still see the old version** | This is a service worker caching thing, not a mistake on your part — see below. |
 
@@ -229,9 +222,45 @@ service worker yet, so it always shows the true current files.
 - `verbs_index.json` — lightweight verb list (id, lemma, translation, class)
 - `verbs_conjugated.json` — full conjugated paradigms for all 79 verbs
 - `manifest.json` / `sw.js` — enable "Add to Home Screen" and offline mode
-- `icon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable.png` — app icon
+- `icon-192.png`, `icon-512.png`, `icon-maskable.png` — app icon
 
 ## How practice sessions work
+
+Opening the app now shows a **mode picker** first — Conjugation Drill (the
+original game) or **Open → Closed** (new). Tap the "Greek Time." wordmark at any
+time to get back to this picker.
+
+### Open → Closed (new)
+
+Tests something different from the conjugation drill: recognizing the link
+between a verb's *open* (imperfective/continuous) form and its *closed*
+(perfective/momentary) form — e.g. αγοράζω (buying, ongoing) → αγοράσω
+(a single, completed act of buying). This is the present-vs-aorist-stem
+distinction, shown as a standalone recognition exercise rather than folded
+into full conjugation.
+
+- **Direction** — Open → Closed (default), Closed → Open (reversed: see the
+  perfective form, produce the imperfective one), or Random (mixes both —
+  builds a double-sized pool so both directions get equal exposure rather
+  than picking randomly per-repeat).
+- Always 1st person singular, no pronoun shown — this game is purely about
+  the stem relationship, not endings.
+- Type the bare closed form — no να or θα needed.
+- No Hint button in this mode (would give away the whole exercise).
+- 74 of the 79 verbs are eligible. Excluded: είμαι, έχω, ξέρω, and πρέπει
+  (no genuine perfective form to test), and κάνω (its open and closed forms
+  are genuinely identical — confirmed against an independent grammar
+  reference, not a data gap).
+- One verb needed a manual fix: **πάω**'s stored entry covers the present
+  tense, but the true *open*-form word is πηγαίνω — πάω is specifically the
+  *closed* form. So this game shows πηγαίνω as the prompt and checks your
+  answer against πάω, even though the main conjugation drill still uses πάω
+  as that verb's everyday lemma.
+- Same underlying engine as the conjugation drill — retry-until-correct,
+  gentle buzzer, timer, live score, "Show meaning" button all work exactly
+  the same way.
+
+### Conjugation Drill (original)
 
 Reworked to match how Conjuguemos actually works, including its retry-until-
 correct grading style (confirmed by checking how Conjuguemos itself behaves,
