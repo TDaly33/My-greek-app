@@ -116,9 +116,27 @@ function initViewportFix() {
   function update() {
     document.documentElement.style.setProperty("--vvh", `${vv.height}px`);
   }
-  vv.addEventListener("resize", update);
+
+  // When the keyboard opens (or the input is first tapped), make sure the
+  // answer box is actually visible within the drill screen's own scroll
+  // area - the native page-level auto-scroll is intentionally disabled
+  // (that was causing the disorienting whole-page jump), so this replaces
+  // it with a version scoped to just that container.
+  function keepInputVisible() {
+    if (document.activeElement === els.answerInput) {
+      els.answerInput.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+  }
+
+  vv.addEventListener("resize", () => { update(); keepInputVisible(); });
   vv.addEventListener("scroll", update);
   update();
+
+  document.addEventListener("focusin", e => {
+    if (e.target && e.target.id === "answerInput") {
+      setTimeout(keepInputVisible, 60);
+    }
+  });
 
   // iOS can still try to auto-scroll the page to keep a focused input
   // visible above the keyboard, even with overflow:hidden set. Since the
