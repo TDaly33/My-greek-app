@@ -58,7 +58,6 @@ let els = {};
 document.addEventListener("DOMContentLoaded", async () => {
   cacheEls();
   initTheme();
-  initViewportFix();
   registerServiceWorker();
   try {
     await loadData();
@@ -109,46 +108,6 @@ function applyTheme(theme) {
 // keyboard-aware size is only available via window.visualViewport, which
 // this tracks into a CSS variable so the drill screen can size itself to
 // what's actually visible above the keyboard.
-function initViewportFix() {
-  const vv = window.visualViewport;
-  if (!vv) return;
-
-  function update() {
-    document.documentElement.style.setProperty("--vvh", `${vv.height}px`);
-  }
-
-  // When the keyboard opens (or the input is first tapped), make sure the
-  // answer box is actually visible within the drill screen's own scroll
-  // area - the native page-level auto-scroll is intentionally disabled
-  // (that was causing the disorienting whole-page jump), so this replaces
-  // it with a version scoped to just that container.
-  function keepInputVisible() {
-    if (document.activeElement === els.answerInput) {
-      els.answerInput.scrollIntoView({ block: "center", behavior: "smooth" });
-    }
-  }
-
-  vv.addEventListener("resize", () => { update(); keepInputVisible(); });
-  vv.addEventListener("scroll", update);
-  update();
-
-  document.addEventListener("focusin", e => {
-    if (e.target && e.target.id === "answerInput") {
-      setTimeout(keepInputVisible, 60);
-    }
-  });
-
-  // iOS can still try to auto-scroll the page to keep a focused input
-  // visible above the keyboard, even with overflow:hidden set. Since the
-  // drill screen is already sized to fit the real visible area, snap any
-  // stray scroll back to the top rather than letting the page drift.
-  window.addEventListener("scroll", () => {
-    if (document.body.classList.contains("drill-active") && window.scrollY !== 0) {
-      window.scrollTo(0, 0);
-    }
-  });
-}
-
 function cacheEls() {
   const ids = [
     "app","stage","screen-setup","screen-drill","screen-results",

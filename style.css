@@ -65,21 +65,7 @@
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
-body.drill-active{
-  height:var(--vvh, 100vh);
-  overflow:hidden;
-  position:fixed;
-  width:100%;
-  top:0; left:0;
-}
-body.drill-active .app{ height:100%; }
-body.drill-active .stage{ overflow:hidden; min-height:0; }
 body.drill-active .foot{ display:none; }
-.screen[data-screen="drill"]{
-  height:100%; min-height:0;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-}
 body{
   margin:0;
   background:var(--paper);
@@ -252,6 +238,13 @@ body{
 
 /* ============ drill screen ============ */
 .screen[data-screen="drill"]{ width:100%; flex-direction:column; align-items:center; }
+.drill-sticky-header{
+  position:sticky; top:0; z-index:9;
+  width:100%;
+  background:var(--paper);
+  padding-bottom:6px;
+  display:flex; flex-direction:column; align-items:center;
+}
 .drill-head{
   width:calc(100% - 40px); max-width:600px; margin:10px 0 0;
   display:flex; align-items:center; gap:12px;
