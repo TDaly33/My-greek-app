@@ -87,6 +87,9 @@ body{
   padding:14px 20px;
   display:flex; align-items:center; justify-content:space-between;
 }
+.wordmark-btn{
+  appearance:none; border:none; background:none; cursor:pointer; padding:0;
+}
 .wordmark{
   font-family:var(--serif);
   font-size:22px; font-weight:700; letter-spacing:.01em;
@@ -140,6 +143,24 @@ body{
   font-family:var(--sans);
   font-size:13px; font-weight:700; letter-spacing:.02em;
   margin:0 0 10px; color:var(--ink);
+}
+
+.back-to-landing{ display:block; margin-bottom:16px; }
+
+.mode-card{
+  display:block; width:100%; text-align:left;
+  background:var(--card-soft); border:1px solid var(--hairline);
+  border-radius:14px; padding:18px 20px; margin-bottom:14px;
+  cursor:pointer; transition:border-color .12s ease, transform .08s ease;
+}
+.mode-card:hover{ border-color:var(--rust); }
+.mode-card:active{ transform:scale(.99); }
+.mode-card-title{
+  display:block; font-family:var(--sans); font-size:17px; font-weight:700;
+  color:var(--ink); margin-bottom:6px;
+}
+.mode-card-desc{
+  display:block; font-size:13.5px; color:var(--ink-soft); line-height:1.4;
 }
 
 /* ============ setup: fields ============ */

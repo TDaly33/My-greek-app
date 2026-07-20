@@ -44,6 +44,17 @@ const VOICE_META = [
 
 const STORAGE_KEY = "greek-drill-settings-v2";
 
+// Open -> Closed mode: verbs with no genuine closed (perfective) form at all
+// (defective aspect), plus κάνω which genuinely has an identical open/closed
+// form - confirmed against an independent conjugation reference, not just
+// derived from our own data (which wouldn't show a false positive/negative
+// here reliably on its own).
+const OC_EXCLUDED_IDS = new Set(["eimai", "exo", "xero", "prepei", "kano"]);
+// πάω's stored lemma covers the present-tense role, but the true "open"
+// (imperfective) citation word is πηγαίνω - πάω is specifically the closed
+// (perfective) word. Two different words, confirmed via multiple sources.
+const OC_OPEN_FORM_OVERRIDE = { pao: "πηγαίνω" };
+
 // ===================== state =====================
 
 let verbsIndex = [];      // [{id, lemma, translation, class, voice}]
@@ -52,6 +63,8 @@ let selectedVerbIds = new Set();
 let session = null;       // current drill session
 let timerHandle = null;
 let els = {};
+let currentMode = null;   // "conjugate" | "openclosed"
+let quitDestination = "setup";
 
 // ===================== boot =====================
 
@@ -69,10 +82,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   buildFilterUI();
   restoreSettings();
+  wireLandingScreen();
   wireSetupScreen();
   wireDrillScreen();
   wireResultsScreen();
-  updateVerbCount();
   updateStartBarSummary();
   els.verbTotalFoot.textContent = `${verbsIndex.length} verbs in the bank`;
 });
@@ -103,17 +116,15 @@ function applyTheme(theme) {
   }
 }
 
-// iOS Safari doesn't reliably shrink CSS vh/dvh units for the on-screen
-// keyboard - vh/dvh mainly account for the browser's own toolbar. The
-// keyboard-aware size is only available via window.visualViewport, which
-// this tracks into a CSS variable so the drill screen can size itself to
-// what's actually visible above the keyboard.
 function cacheEls() {
   const ids = [
-    "app","stage","screen-setup","screen-drill","screen-results",
+    "app","stage",
+    "screen-landing","modeConjugateBtn","modeOpenClosedBtn",
+    "screen-setup","screen-setup-oc","screen-drill","screen-results",
     "tenseChips","personChips","voiceChips","classChips",
     "verbList","verbSearch","verbSelectedCount",
-    "timerField","timerMinutes",
+    "classChipsOC","verbListOC","verbSearchOC","verbSelectedCountOC",
+    "timerField","timerMinutes","timerFieldOC","timerMinutesOC","accentLenientOC",
     "accentLenient","startBtn","setupError",
     "quitBtn","progressFill","progressLabel","drillMeta","startBar","startBarSummary",
     "scoreLive","timerLive",
@@ -122,7 +133,7 @@ function cacheEls() {
     "resultsHeadline","resultsSub","scoreRingFill","scoreRingPct",
     "missedWrap","reviewList","missedOnlyBtn","againSameBtn","newSetBtn",
     "quitModal","quitCancelBtn","quitConfirmBtn",
-    "topbarStatus","verbTotalFoot","themeToggle",
+    "topbarStatus","verbTotalFoot","themeToggle","wordmarkBtn",
   ];
   ids.forEach(id => { els[toCamel(id)] = document.getElementById(id); });
 }
@@ -167,21 +178,26 @@ function buildFilterUI() {
     els.voiceChips.appendChild(makeChip(v.key, v.label, i === 0));
   });
 
-  els.classChips.innerHTML = "";
-  CLASS_META.forEach(c => {
-    els.classChips.appendChild(makeChip(c.key, c.label, true));
+  [els.classChips, els.classChipsOC].forEach(container => {
+    container.innerHTML = "";
+    CLASS_META.forEach(c => {
+      container.appendChild(makeChip(c.key, c.label, true));
+    });
   });
 
-  buildVerbList();
-  syncClassChips();
+  buildVerbList(els.verbList, els.verbSearch);
+  buildVerbList(els.verbListOC, els.verbSearchOC, OC_EXCLUDED_IDS);
+  syncAllVerbUI();
 
   els.tenseChips.addEventListener("click", e => onChipClick(e, false));
   els.personChips.addEventListener("click", e => onChipClick(e, false));
   els.voiceChips.addEventListener("click", e => onChipClick(e, true));
-  els.classChips.addEventListener("click", e => {
-    const chip = e.target.closest(".chip");
-    if (!chip) return;
-    toggleClassSelection(chip.dataset.key);
+  [els.classChips, els.classChipsOC].forEach(container => {
+    container.addEventListener("click", e => {
+      const chip = e.target.closest(".chip");
+      if (!chip) return;
+      toggleClassSelection(chip.dataset.key);
+    });
   });
 }
 
@@ -192,14 +208,21 @@ function toggleClassSelection(classKey) {
     if (allSelected) selectedVerbIds.delete(v.id);
     else selectedVerbIds.add(v.id);
   });
-  syncVerbCheckboxes();
-  syncClassChips();
-  updateVerbCount();
+  syncAllVerbUI();
   saveSettings();
 }
 
-function syncClassChips() {
-  [...els.classChips.children].forEach(chip => {
+function syncAllVerbUI() {
+  syncVerbCheckboxes(els.verbList);
+  syncVerbCheckboxes(els.verbListOC);
+  syncClassChips(els.classChips);
+  syncClassChips(els.classChipsOC);
+  updateVerbCount(els.verbSelectedCount, els.verbList);
+  updateVerbCount(els.verbSelectedCountOC, els.verbListOC);
+}
+
+function syncClassChips(container) {
+  [...container.children].forEach(chip => {
     const verbsInClass = verbsIndex.filter(v => verbClass(v) === chip.dataset.key);
     const allSelected = verbsInClass.length > 0 && verbsInClass.every(v => selectedVerbIds.has(v.id));
     chip.setAttribute("aria-pressed", String(allSelected));
@@ -252,10 +275,13 @@ document.addEventListener("click", e => {
     const preset = verbPreset.dataset.verbPreset;
     if (preset === "all") selectedVerbIds = new Set(verbsIndex.map(v => v.id));
     else if (preset === "none") selectedVerbIds = new Set();
-    syncVerbCheckboxes();
-    syncClassChips();
-    updateVerbCount();
+    syncAllVerbUI();
     saveSettings();
+  }
+
+  const gotoBtn = e.target.closest("[data-goto]");
+  if (gotoBtn) {
+    goToLanding();
   }
 });
 
@@ -275,11 +301,12 @@ function verbClass(v) {
 
 // ===================== verb checklist =====================
 
-function buildVerbList() {
-  els.verbList.innerHTML = "";
+function buildVerbList(listEl, searchEl, excludeIds) {
+  listEl.innerHTML = "";
   const byClass = {};
   CLASS_META.forEach(c => { byClass[c.key] = []; });
   verbsIndex.forEach(v => {
+    if (excludeIds && excludeIds.has(v.id)) return;
     const c = verbClass(v);
     if (!byClass[c]) byClass[c] = [];
     byClass[c].push(v);
@@ -292,7 +319,7 @@ function buildVerbList() {
     const label = document.createElement("div");
     label.className = "verb-group-label";
     label.textContent = c.label;
-    els.verbList.appendChild(label);
+    listEl.appendChild(label);
     verbs.forEach(v => {
       n++;
       const row = document.createElement("label");
@@ -305,24 +332,23 @@ function buildVerbList() {
         <span class="verb-lemma">${v.lemma}</span>
         <span class="verb-en">${v.translation}</span>
       `;
-      els.verbList.appendChild(row);
+      listEl.appendChild(row);
     });
   });
 
-  els.verbList.addEventListener("change", e => {
+  listEl.addEventListener("change", e => {
     const cb = e.target.closest('input[type="checkbox"]');
     if (!cb) return;
     if (cb.checked) selectedVerbIds.add(cb.dataset.id);
     else selectedVerbIds.delete(cb.dataset.id);
-    syncClassChips();
-    updateVerbCount();
+    syncAllVerbUI();
     saveSettings();
   });
 
-  els.verbSearch.addEventListener("input", () => {
-    const q = normalizeSearch(els.verbSearch.value);
+  searchEl.addEventListener("input", () => {
+    const q = normalizeSearch(searchEl.value);
     let lastGroupVisible = null;
-    [...els.verbList.children].forEach(el => {
+    [...listEl.children].forEach(el => {
       if (el.classList.contains("verb-group-label")) {
         lastGroupVisible = el;
         el.classList.add("is-hidden");
@@ -339,14 +365,16 @@ function normalizeSearch(s) {
   return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-function syncVerbCheckboxes() {
-  els.verbList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+function syncVerbCheckboxes(listEl) {
+  listEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
     cb.checked = selectedVerbIds.has(cb.dataset.id);
   });
 }
 
-function updateVerbCount() {
-  els.verbSelectedCount.textContent = `${selectedVerbIds.size} selected`;
+function updateVerbCount(countEl, listEl) {
+  const total = listEl.querySelectorAll('input[type="checkbox"]').length;
+  const selected = [...listEl.querySelectorAll('input[type="checkbox"]')].filter(cb => selectedVerbIds.has(cb.dataset.id)).length;
+  countEl.textContent = `${selected} of ${total} selected`;
 }
 
 // ===================== settings persistence =====================
@@ -361,12 +389,19 @@ function saveSettings() {
       verbIds: [...selectedVerbIds],
       minutes: els.timerMinutes.value,
       lenient: els.accentLenient.checked,
+      minutesOC: els.timerMinutesOC.value,
+      lenientOC: els.accentLenientOC.checked,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch (e) { /* storage unavailable — ignore */ }
 }
 
 function updateStartBarSummary() {
+  if (currentMode === "openclosed") {
+    const eligible = [...selectedVerbIds].filter(id => !OC_EXCLUDED_IDS.has(id)).length;
+    els.startBarSummary.textContent = `${eligible} verb${eligible === 1 ? "" : "s"}`;
+    return;
+  }
   const tenseCount = selectedKeys(els.tenseChips).length;
   const personCount = selectedKeys(els.personChips).length;
   const verbCount = selectedVerbIds.size;
@@ -391,11 +426,12 @@ function restoreSettings() {
   if (s.voice) setSingle(els.voiceChips, s.voice);
   if (Array.isArray(s.verbIds) && s.verbIds.length) {
     selectedVerbIds = new Set(s.verbIds);
-    syncVerbCheckboxes();
-    syncClassChips();
+    syncAllVerbUI();
   }
   if (s.minutes) els.timerMinutes.value = s.minutes;
   if (typeof s.lenient === "boolean") els.accentLenient.checked = s.lenient;
+  if (s.minutesOC) els.timerMinutesOC.value = s.minutesOC;
+  if (typeof s.lenientOC === "boolean") els.accentLenientOC.checked = s.lenientOC;
 }
 function setSingle(container, key) {
   [...container.children].forEach(c => c.setAttribute("aria-pressed", String(c.dataset.key === key)));
@@ -438,6 +474,34 @@ function buildPool(tenseKeys, personIdxSet, voiceKey, verbIds) {
           });
         }
       });
+    });
+  });
+  return pool;
+}
+
+function buildPoolOpenClosed(verbIds) {
+  const pool = [];
+  verbsIndex.forEach(vIdx => {
+    if (!verbIds.has(vIdx.id)) return;
+    if (OC_EXCLUDED_IDS.has(vIdx.id)) return;
+    const data = verbsData[vIdx.id];
+    if (!data) return;
+    const voiceSide = vIdx.voice === "passive" ? "passive" : "active";
+    const forms = data[voiceSide];
+    if (!forms || !forms.present || !forms.subjunctiveAorist) return;
+
+    const openForm = OC_OPEN_FORM_OVERRIDE[vIdx.id] || forms.present[0];
+    const closedForm = splitParticle(forms.subjunctiveAorist[0]).word;
+    if (!closedForm || closedForm === openForm) return; // safety net, shouldn't trigger given the exclusion list
+
+    pool.push({
+      verb: vIdx,
+      data: { lemma: openForm, translation: vIdx.translation },
+      voiceSide,
+      tenseMeta: { label: "Open → Closed", splittable: false },
+      personIdx: null,
+      correct: closedForm,
+      forms: null,
     });
   });
   return pool;
@@ -517,26 +581,64 @@ function isCorrect(userAnswer, correctAnswer, lenient) {
   return normalize(userAnswer, lenient) === normalize(correctAnswer, lenient);
 }
 
+// ===================== landing / navigation wiring =====================
+
+function wireLandingScreen() {
+  els.modeConjugateBtn.addEventListener("click", () => {
+    currentMode = "conjugate";
+    showScreen("setup");
+  });
+  els.modeOpenClosedBtn.addEventListener("click", () => {
+    currentMode = "openclosed";
+    showScreen("setup-oc");
+  });
+  els.wordmarkBtn.addEventListener("click", () => {
+    const onDrill = !document.getElementById("screen-drill").hidden;
+    if (onDrill) {
+      quitDestination = "landing";
+      els.quitModal.hidden = false;
+    } else {
+      goToLanding();
+    }
+  });
+}
+
 // ===================== setup screen wiring =====================
 
 function wireSetupScreen() {
   els.startBtn.addEventListener("click", () => {
     els.setupError.hidden = true;
-    const tenseKeys = selectedKeys(els.tenseChips);
-    const personIdxSet = new Set(selectedKeys(els.personChips).map(Number));
-    if (!tenseKeys.length) return showSetupError("Pick at least one tense or mood.");
-    if (!personIdxSet.size) return showSetupError("Pick at least one pronoun.");
-    if (!selectedVerbIds.size) return showSetupError("Pick at least one verb.");
-
-    const voiceKey = singleSelected(els.voiceChips) || "both";
-    const pool = buildPool(tenseKeys, personIdxSet, voiceKey, selectedVerbIds);
-    if (!pool.length) return showSetupError("No forms match that combination — try widening your filters.");
-
-    saveSettings();
-    const lenient = els.accentLenient.checked;
-    const minutes = Math.max(1, Math.min(60, parseInt(els.timerMinutes.value, 10) || 5));
-    startSession(pool, { mode: "timer", minutes, lenient });
+    if (currentMode === "openclosed") return startOpenClosedSession();
+    return startConjugateSession();
   });
+}
+
+function startConjugateSession() {
+  const tenseKeys = selectedKeys(els.tenseChips);
+  const personIdxSet = new Set(selectedKeys(els.personChips).map(Number));
+  if (!tenseKeys.length) return showSetupError("Pick at least one tense or mood.");
+  if (!personIdxSet.size) return showSetupError("Pick at least one pronoun.");
+  if (!selectedVerbIds.size) return showSetupError("Pick at least one verb.");
+
+  const voiceKey = singleSelected(els.voiceChips) || "both";
+  const pool = buildPool(tenseKeys, personIdxSet, voiceKey, selectedVerbIds);
+  if (!pool.length) return showSetupError("No forms match that combination — try widening your filters.");
+
+  saveSettings();
+  const lenient = els.accentLenient.checked;
+  const minutes = Math.max(1, Math.min(60, parseInt(els.timerMinutes.value, 10) || 5));
+  startSession(pool, { mode: "timer", minutes, lenient });
+}
+
+function startOpenClosedSession() {
+  if (!selectedVerbIds.size) return showSetupError("Pick at least one verb.");
+  const pool = buildPoolOpenClosed(selectedVerbIds);
+  if (!pool.length) return showSetupError("None of the selected verbs work for this game — try selecting more.");
+
+  saveSettings();
+  const lenient = els.accentLenientOC.checked;
+  const minutes = Math.max(1, Math.min(60, parseInt(els.timerMinutesOC.value, 10) || 5));
+  startSession(pool, { mode: "timer", minutes, lenient });
 }
 
 function showSetupError(msg) {
@@ -623,13 +725,16 @@ function renderQuestion() {
   els.promptTranslation.hidden = true;
   els.revealMeaningBtn.textContent = "Show meaning";
   els.revealMeaningBtn.hidden = false;
-  els.promptPerson.textContent = PERSON_META[item.personIdx].short;
+
+  const isOpenClosed = currentMode === "openclosed";
+  els.promptPerson.hidden = isOpenClosed;
+  if (!isOpenClosed) els.promptPerson.textContent = PERSON_META[item.personIdx].short;
 
   els.answerInput.value = "";
   els.answerInput.disabled = false;
   els.answerInput.classList.remove("is-wrong", "is-correct");
   els.checkBtn.disabled = false;
-  els.hintBtn.hidden = false;
+  els.hintBtn.hidden = isOpenClosed || false;
   els.hintText.hidden = true;
   els.tryAgainText.hidden = true;
   els.answerInput.focus();
@@ -662,6 +767,7 @@ function wireDrillScreen() {
     els.revealMeaningBtn.textContent = showing ? "Show meaning" : "Hide meaning";
   });
   els.quitBtn.addEventListener("click", () => {
+    quitDestination = currentMode === "openclosed" ? "setup-oc" : "setup";
     els.quitModal.hidden = false;
   });
   els.quitCancelBtn.addEventListener("click", () => {
@@ -670,7 +776,8 @@ function wireDrillScreen() {
   els.quitConfirmBtn.addEventListener("click", () => {
     els.quitModal.hidden = true;
     clearTimer();
-    showScreen("setup");
+    if (quitDestination === "landing") goToLanding();
+    else showScreen(quitDestination);
   });
 }
 
@@ -787,7 +894,7 @@ function wireResultsScreen() {
     const missedPool = session.missed.map(m => m.item);
     startSession(missedPool, { mode: "count", count: missedPool.length, lenient: session.lenient });
   });
-  els.newSetBtn.addEventListener("click", () => showScreen("setup"));
+  els.newSetBtn.addEventListener("click", () => showScreen(currentMode === "openclosed" ? "setup-oc" : "setup"));
 }
 
 function finishSession() {
@@ -815,9 +922,10 @@ function finishSession() {
       const answerHTML = item.tenseMeta.splittable
         ? stemSplitHTML(item)
         : escapeHTML(item.correct);
+      const personPart = item.personIdx === null ? "" : ` · ${escapeHTML(PERSON_LABELS[item.personIdx])}`;
       li.innerHTML = `
         <div>
-          <div class="review-meta">${escapeHTML(item.data.lemma)} · ${escapeHTML(item.tenseMeta.label)}${voiceLabel} · ${escapeHTML(PERSON_LABELS[item.personIdx])}</div>
+          <div class="review-meta">${escapeHTML(item.data.lemma)} · ${escapeHTML(item.tenseMeta.label)}${voiceLabel}${personPart}</div>
           ${userVal.trim() ? `<div class="review-your">${escapeHTML(userVal.trim())}</div>` : ""}
         </div>
         <div class="review-answer">${answerHTML}</div>
@@ -839,10 +947,15 @@ function subMessage(pct) {
 // ===================== screen switching =====================
 
 function showScreen(name) {
-  ["setup", "drill", "results"].forEach(n => {
+  ["landing", "setup", "setup-oc", "drill", "results"].forEach(n => {
     document.getElementById(`screen-${n}`).hidden = n !== name;
   });
-  els.startBar.hidden = name !== "setup";
+  els.startBar.hidden = name !== "setup" && name !== "setup-oc";
   document.body.classList.toggle("drill-active", name === "drill");
   window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+}
+
+function goToLanding() {
+  currentMode = null;
+  showScreen("landing");
 }
