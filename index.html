@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ρήματα — Greek Verb Drill</title>
+<meta name="description" content="Practice Modern Greek verb conjugation, offline.">
+<meta name="theme-color" content="#F3ECDC">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="wordmark">Ρήματα<span class="wordmark-dot">.</span></span>
+      <div class="topbar-right">
+        <span class="eyebrow" id="topbarStatus">offline-ready</span>
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+
+    <!-- ===================== SETUP SCREEN ===================== -->
+    <section class="screen" id="screen-setup" data-screen="setup">
+      <div class="card">
+        <p class="eyebrow">build a practice set</p>
+        <h1 class="h1">Which forms do you want to drill?</h1>
+
+        <div class="field-group">
+          <h2 class="h2"><span class="step-num">1</span>Tenses &amp; moods</h2>
+          <div class="chip-grid" id="tenseChips"></div>
+          <div class="chip-row-actions">
+            <button type="button" class="link-btn" data-tense-preset="core">Core four</button>
+            <button type="button" class="link-btn" data-tense-preset="all">Select all</button>
+            <button type="button" class="link-btn" data-tense-preset="none">Clear</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <h2 class="h2"><span class="step-num">2</span>Pronouns</h2>
+          <div class="chip-grid" id="personChips"></div>
+          <div class="chip-row-actions">
+            <button type="button" class="link-btn" data-person-preset="all">All</button>
+            <button type="button" class="link-btn" data-person-preset="none">Clear</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <h2 class="h2"><span class="step-num">3</span>Voice</h2>
+          <div class="chip-grid" id="voiceChips"></div>
+        </div>
+
+        <div class="field-group">
+          <div class="verbs-head">
+            <h2 class="h2"><span class="step-num">4</span>Verbs <span class="count-badge" id="verbSelectedCount"></span></h2>
+            <input type="search" id="verbSearch" class="search-input" placeholder="search…">
+          </div>
+          <div class="chip-row-actions">
+            <button type="button" class="link-btn" data-verb-preset="all">All</button>
+            <button type="button" class="link-btn" data-verb-preset="none">Clear</button>
+          </div>
+          <div class="chip-grid" id="classChips"></div>
+          <div class="verb-list" id="verbList"></div>
+        </div>
+
+        <div class="field-group">
+          <h2 class="h2"><span class="step-num">5</span>Practice length</h2>
+          <p class="hint" style="margin-top:0;">Unlimited cards — verbs repeat as needed until time runs out.</p>
+          <label class="length-field" id="timerField">
+            <span>Minutes</span>
+            <input type="number" id="timerMinutes" class="number-input" min="1" max="60" step="1" value="5">
+          </label>
+        </div>
+
+        <div class="field-group" style="margin-bottom:4px;">
+          <h2 class="h2"><span class="step-num">6</span>Answer checking</h2>
+          <label class="toggle">
+            <input type="checkbox" id="accentLenient" checked>
+            <span>Ignore accent marks</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <div class="start-bar" id="startBar">
+      <p class="error-text" id="setupError" hidden></p>
+      <div class="start-bar-inner">
+        <span class="start-bar-summary" id="startBarSummary"></span>
+        <button type="button" class="btn-primary start-bar-btn" id="startBtn">Start practice</button>
+      </div>
+    </div>
+
+    <!-- ===================== DRILL SCREEN ===================== -->
+    <section class="screen" id="screen-drill" data-screen="drill" hidden>
+      <div class="drill-head">
+        <button type="button" class="back-btn" id="quitBtn">← Menu</button>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <span class="progress-label" id="progressLabel">1 / 20</span>
+      </div>
+      <div class="score-strip">
+        <span class="score-strip-item" id="scoreLive">Score: 0/0</span>
+        <span class="score-strip-item" id="timerLive" hidden>⏱ 5:00</span>
+      </div>
+
+      <div class="card card-drill">
+        <p class="eyebrow" id="drillMeta">present · 1st person singular</p>
+        <h1 class="prompt-line">
+          <span class="prompt-person" id="promptPerson">εγώ</span>
+          <span class="prompt-lemma" id="promptLemma">γράφω</span>
+        </h1>
+        <button type="button" class="reveal-btn" id="revealMeaningBtn">Show meaning</button>
+        <p class="prompt-translation" id="promptTranslation" hidden>to write</p>
+
+        <form id="answerForm" autocomplete="off">
+          <input
+            type="text" id="answerInput" class="answer-input"
+            autocapitalize="off" autocorrect="off" spellcheck="false">
+          <button type="submit" class="btn-check" id="checkBtn">Check answer</button>
+        </form>
+        <button type="button" class="hint-btn" id="hintBtn">Hint</button>
+        <p class="hint-text" id="hintText" hidden></p>
+        <p class="try-again-text" id="tryAgainText" hidden>Not quite — try again</p>
+      </div>
+    </section>
+
+    <!-- ===================== RESULTS SCREEN ===================== -->
+    <section class="screen" id="screen-results" data-screen="results" hidden>
+      <div class="card">
+        <p class="eyebrow">session complete</p>
+        <h1 class="h1" id="resultsHeadline">17 / 20 correct</h1>
+        <p class="results-sub" id="resultsSub">Nicely done.</p>
+
+        <div class="score-ring-wrap">
+          <svg viewBox="0 0 120 120" class="score-ring">
+            <circle cx="60" cy="60" r="52" class="score-ring-track"></circle>
+            <circle cx="60" cy="60" r="52" class="score-ring-fill" id="scoreRingFill"></circle>
+          </svg>
+          <span class="score-ring-pct" id="scoreRingPct">85%</span>
+        </div>
+
+        <div id="missedWrap">
+          <h2 class="h2">Review</h2>
+          <ul class="review-list" id="reviewList"></ul>
+        </div>
+
+        <div class="results-actions">
+          <button type="button" class="btn-secondary" id="missedOnlyBtn">Practice missed only</button>
+          <button type="button" class="btn-secondary" id="againSameBtn">Practice this set again</button>
+          <button type="button" class="btn-primary" id="newSetBtn">New practice set</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="modal-overlay" id="quitModal" hidden>
+    <div class="modal-card">
+      <p class="modal-text">End this practice session?</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="quitCancelBtn">Keep going</button>
+        <button type="button" class="btn-primary" id="quitConfirmBtn">End session</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span id="verbTotalFoot"></span>
+  </footer>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

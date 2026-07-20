@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#3B2A22"/>
+  <text x="256" y="330" font-family="Georgia, 'Times New Roman', serif" font-size="300"
+        font-weight="700" text-anchor="middle" fill="#F3ECDC">Ρ</text>
+  <rect x="176" y="374" width="90" height="16" rx="8" fill="#C1502E"/>
+  <rect x="276" y="374" width="60" height="16" rx="8" fill="#2A6F6A"/>
+</svg>

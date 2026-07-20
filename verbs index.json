@@ -1,0 +1,548 @@
+[
+  {
+    "id": "eimai",
+    "lemma": "είμαι",
+    "translation": "to be",
+    "class": null
+  },
+  {
+    "id": "exo",
+    "lemma": "έχω",
+    "translation": "to have",
+    "class": null
+  },
+  {
+    "id": "pao",
+    "lemma": "πάω",
+    "translation": "to go",
+    "class": null
+  },
+  {
+    "id": "leo",
+    "lemma": "λέω",
+    "translation": "to say / to tell",
+    "class": null
+  },
+  {
+    "id": "troo",
+    "lemma": "τρώω",
+    "translation": "to eat",
+    "class": null
+  },
+  {
+    "id": "xero",
+    "lemma": "ξέρω",
+    "translation": "to know (a fact) [defective: no aorist]",
+    "class": null
+  },
+  {
+    "id": "prepei",
+    "lemma": "πρέπει",
+    "translation": "must / should (impersonal - 3rd sg only)",
+    "class": null
+  },
+  {
+    "id": "grafo",
+    "lemma": "γράφω",
+    "translation": "to write",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "diabazo",
+    "lemma": "διαβάζω",
+    "translation": "to read",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "doulevo",
+    "lemma": "δουλεύω",
+    "translation": "to work",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "paizo",
+    "lemma": "παίζω",
+    "translation": "to play",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "anoigo",
+    "lemma": "ανοίγω",
+    "translation": "to open",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "kleino",
+    "lemma": "κλείνω",
+    "translation": "to close",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "magirevo",
+    "lemma": "μαγειρεύω",
+    "translation": "to cook",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "katharizo",
+    "lemma": "καθαρίζω",
+    "translation": "to clean",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "agorazo",
+    "lemma": "αγοράζω",
+    "translation": "to buy",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "xano",
+    "lemma": "χάνω",
+    "translation": "to lose",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "brisko",
+    "lemma": "βρίσκω",
+    "translation": "to find",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "mathaino",
+    "lemma": "μαθαίνω",
+    "translation": "to learn",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "katalabaino",
+    "lemma": "καταλαβαίνω",
+    "translation": "to understand",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "pino",
+    "lemma": "πίνω",
+    "translation": "to drink",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "blepo",
+    "lemma": "βλέπω",
+    "translation": "to see",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "dino",
+    "lemma": "δίνω",
+    "translation": "to give",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "perno",
+    "lemma": "παίρνω",
+    "translation": "to take",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "meno",
+    "lemma": "μένω",
+    "translation": "to stay / to live",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "beno",
+    "lemma": "μπαίνω",
+    "translation": "to enter",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "vgaino",
+    "lemma": "βγαίνω",
+    "translation": "to go out",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "fevgo",
+    "lemma": "φεύγω",
+    "translation": "to leave",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "stelno",
+    "lemma": "στέλνω",
+    "translation": "to send",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "treho",
+    "lemma": "τρέχω",
+    "translation": "to run",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "pistevo",
+    "lemma": "πιστεύω",
+    "translation": "to believe",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "ftiahno",
+    "lemma": "φτιάχνω",
+    "translation": "to make / to fix",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "pleno",
+    "lemma": "πλένω",
+    "translation": "to wash",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "klaio",
+    "lemma": "κλαίω",
+    "translation": "to cry",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "nomizo",
+    "lemma": "νομίζω",
+    "translation": "to think / to believe",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "thelo",
+    "lemma": "θέλω",
+    "translation": "to want",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "deihno",
+    "lemma": "δείχνω",
+    "translation": "to show",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "akouo",
+    "lemma": "ακούω",
+    "translation": "to hear / to listen",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "gnorizo",
+    "lemma": "γνωρίζω",
+    "translation": "to know (a person) / to meet",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "arhizo",
+    "lemma": "αρχίζω",
+    "translation": "to begin",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "teleiono",
+    "lemma": "τελειώνω",
+    "translation": "to finish",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "perimeno",
+    "lemma": "περιμένω",
+    "translation": "to wait",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "sikono",
+    "lemma": "σηκώνω",
+    "translation": "to lift / to raise",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "ntino",
+    "lemma": "ντύνω",
+    "translation": "to dress",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "horevo",
+    "lemma": "χορεύω",
+    "translation": "to dance",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "epitrepo",
+    "lemma": "επιτρέπω",
+    "translation": "to allow",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "kano",
+    "lemma": "κάνω",
+    "translation": "to do / to make",
+    "class": "A",
+    "voice": "active"
+  },
+  {
+    "id": "milao",
+    "lemma": "μιλάω",
+    "translation": "to speak",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "agapao",
+    "lemma": "αγαπάω",
+    "translation": "to love",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "rotao",
+    "lemma": "ρωτάω",
+    "translation": "to ask",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "zitao",
+    "lemma": "ζητάω",
+    "translation": "to ask for / request",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "apantao",
+    "lemma": "απαντάω",
+    "translation": "to answer",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "gelao",
+    "lemma": "γελάω",
+    "translation": "to laugh",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "peinao",
+    "lemma": "πεινάω",
+    "translation": "to be hungry",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "dipsao",
+    "lemma": "διψάω",
+    "translation": "to be thirsty",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "koitao",
+    "lemma": "κοιτάω",
+    "translation": "to look at",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "forao",
+    "lemma": "φοράω",
+    "translation": "to wear",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "petao",
+    "lemma": "πετάω",
+    "translation": "to fly / to throw",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "stamatao",
+    "lemma": "σταματάω",
+    "translation": "to stop",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "xehnao",
+    "lemma": "ξεχνάω",
+    "translation": "to forget",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "pernao",
+    "lemma": "περνάω",
+    "translation": "to pass / to spend (time)",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "tragoudao",
+    "lemma": "τραγουδάω",
+    "translation": "to sing",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "poulao",
+    "lemma": "πουλάω",
+    "translation": "to sell",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "voithao",
+    "lemma": "βοηθάω",
+    "translation": "to help",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "pidao",
+    "lemma": "πηδάω",
+    "translation": "to jump",
+    "class": "B1",
+    "voice": "active"
+  },
+  {
+    "id": "boro",
+    "lemma": "μπορώ",
+    "translation": "can / to be able to",
+    "class": "B2",
+    "voice": "active"
+  },
+  {
+    "id": "odigo",
+    "lemma": "οδηγώ",
+    "translation": "to drive",
+    "class": "B2",
+    "voice": "active"
+  },
+  {
+    "id": "theoro",
+    "lemma": "θεωρώ",
+    "translation": "to consider",
+    "class": "B2",
+    "voice": "active"
+  },
+  {
+    "id": "suzito",
+    "lemma": "συζητώ",
+    "translation": "to discuss",
+    "class": "B2",
+    "voice": "active"
+  },
+  {
+    "id": "protimo",
+    "lemma": "προτιμώ",
+    "translation": "to prefer",
+    "class": "B2",
+    "voice": "active"
+  },
+  {
+    "id": "koimamai",
+    "lemma": "κοιμάμαι",
+    "translation": "to sleep",
+    "class": null,
+    "voice": "passive"
+  },
+  {
+    "id": "thimamai",
+    "lemma": "θυμάμαι",
+    "translation": "to remember",
+    "class": null,
+    "voice": "passive"
+  },
+  {
+    "id": "lipamai",
+    "lemma": "λυπάμαι",
+    "translation": "to be sorry / to feel sad",
+    "class": null,
+    "voice": "passive"
+  },
+  {
+    "id": "fovamai",
+    "lemma": "φοβάμαι",
+    "translation": "to be afraid",
+    "class": null,
+    "voice": "passive"
+  },
+  {
+    "id": "hreiazomai",
+    "lemma": "χρειάζομαι",
+    "translation": "to need",
+    "class": null,
+    "voice": "passive"
+  },
+  {
+    "id": "erhomai",
+    "lemma": "έρχομαι",
+    "translation": "to come",
+    "class": null,
+    "voice": "passive"
+  },
+  {
+    "id": "ginomai",
+    "lemma": "γίνομαι",
+    "translation": "to become / to happen",
+    "class": null,
+    "voice": "passive"
+  },
+  {
+    "id": "stekomai",
+    "lemma": "στέκομαι",
+    "translation": "to stand",
+    "class": null,
+    "voice": "passive"
+  },
+  {
+    "id": "kathomai",
+    "lemma": "κάθομαι",
+    "translation": "to sit",
+    "class": null,
+    "voice": "passive"
+  }
+]
