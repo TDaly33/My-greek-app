@@ -12,25 +12,20 @@ verb group, then type the conjugated forms. Works fully offline once set up.
 
 ## Part 0 — Download the files into one folder
 
-You need all 13 files below saved into a folder named `greek-app` — 11 sit
-directly inside it, and 2 font files go in a `fonts` subfolder inside it.
-This only works if the structure matches exactly.
+You need all 12 files below saved together in a single folder named
+`greek-app`. Everything sits flat, directly inside that one folder — no
+subfolders. This only works if they're all in the *same* folder.
 
-### Step 1: Create the folders
+### Step 1: Create the folder
 
-Anywhere you like (e.g. your Desktop), create a new folder named
-`greek-app`. Inside that folder, create one more folder named `fonts`.
+Anywhere you like (e.g. your Desktop), create a new folder and name it
+`greek-app`.
 
-```
-greek-app/
-├── (11 files go here)
-└── fonts/
-    └── (2 font files go here)
-```
+### Step 2: Download each file into it
 
-### Step 2: Download each file into the right place
+From the chat, click each of these files to download it, and save it into
+the `greek-app` folder you just made:
 
-**Into `greek-app/` directly:**
 - `index.html`
 - `style.css`
 - `app.js`
@@ -41,15 +36,14 @@ greek-app/
 - `icon-192.png`
 - `icon-512.png`
 - `icon-maskable.png`
-
-**Into `greek-app/fonts/`:**
 - `Lora.woff`
 - `Lora-Italic.woff`
 
 ### Step 3: Double-check
 
-Confirm the 11 files sit directly inside `greek-app`, and the 2 font files
-sit inside `greek-app/fonts/`. That's it, ready for Part 1.
+Open the `greek-app` folder and confirm all 12 files sit directly inside
+it (not in any subfolder) — you should see `index.html` right there in the
+listing. That's it, ready for Part 1.
 
 ---
 
@@ -115,7 +109,7 @@ a phone if you're away from your computer.
 
 ### Step 1: Get the files onto your phone
 
-Download all 11 files (see Part 0) onto your iPhone — tap each, then
+Download all 12 files (see Part 0) onto your iPhone — tap each, then
 Share → **Save to Files**, into one folder so they're easy to find later.
 
 **Important:** when saving, make sure filenames keep their underscores

@@ -1,4 +1,4 @@
-const CACHE_NAME = "greek-time-v21";
+const CACHE_NAME = "greek-time-v22";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,8 +9,8 @@ const ASSETS = [
   "./verbs_conjugated.json",
   "./icon-192.png",
   "./icon-512.png",
-  "./fonts/Lora.woff",
-  "./fonts/Lora-Italic.woff",
+  "./Lora.woff",
+  "./Lora-Italic.woff",
 ];
 
 self.addEventListener("install", event => {
