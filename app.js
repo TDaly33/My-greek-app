@@ -692,8 +692,8 @@ function checkArticlesTable() {
   const inputs = [...els.articlesBody.querySelectorAll(".article-input")];
   const numCols = ARTICLE_COLUMNS.length;
   const maxDiagonal = (ARTICLE_ROWS.length - 1) + (numCols - 1); // 7 for a 3x6 grid
-  const REVEAL_MS = 900;         // slower flip/reveal per cell
-  const CASCADE_STEP_MS = 300;   // per diagonal step; 7 steps * 300ms + 900ms reveal = 3000ms total
+  const REVEAL_MS = 4000;    // tile flip duration
+  const CASCADE_STEP_MS = 150; // delay before the next diagonal starts
   const HOLD_AFTER_CASCADE_MS = 1000;
   const FADE_MS = 450;
   let allCorrect = true;
@@ -706,39 +706,48 @@ function checkArticlesTable() {
     const row = ARTICLE_ROWS.find(r => r.key === input.dataset.row);
     const correctAnswer = row.forms[input.dataset.col];
     const isRight = isCorrect(input.value, correctAnswer, true); // accent-lenient, matching the app default
-    input.classList.remove("is-wrong", "is-correct", "wrong-pop");
     const rowIdx = Math.floor(i / numCols);
     const colIdx = i % numCols;
-    const diagonal = rowIdx + colIdx; // cells on the same top-left-to-bottom-right diagonal flip together
-    const delay = `${diagonal * CASCADE_STEP_MS}ms`;
-    if (isRight) {
-      input.classList.add("is-correct");
-      input.value = correctAnswer;
-      input.disabled = true;
-      if (check) {
-        check.classList.remove("pop");
-        check.style.transition = "";
-        check.style.opacity = "";
-        check.style.transform = "";
-        check.style.animationDelay = delay;
-        void check.offsetWidth; // reflow, so the animation restarts cleanly
-        check.classList.add("pop");
-        ticksToFade.push(check);
-      }
-    } else {
-      input.classList.add("is-wrong");
-      input.value = "";
-      allCorrect = false;
-      input.style.animationDelay = delay;
-      void input.offsetWidth; // reflow, so the animation restarts cleanly
-      input.classList.add("wrong-pop");
+    const diagonal = rowIdx + colIdx; // cells on the same top-left-to-bottom-right diagonal reveal together
+    const delayMs = diagonal * CASCADE_STEP_MS;
+
+    // Reset any leftover state from a previous check, but don't reveal anything yet —
+    // the cell should look like a normal, untouched box until the cascade actually reaches it.
+    input.classList.remove("is-wrong", "is-correct", "wrong-pop");
+    if (check) {
+      check.classList.remove("pop");
+      check.style.transition = "";
+      check.style.opacity = "";
+      check.style.transform = "";
     }
+
+    if (!isRight) allCorrect = false;
+    if (isRight && check) ticksToFade.push(check);
+
+    // Everything below only happens once the cascade reaches this cell's turn — value, class,
+    // and animation are all applied at the same instant, so there's nothing to leak early.
+    setTimeout(() => {
+      if (isRight) {
+        input.classList.add("is-correct");
+        input.value = correctAnswer;
+        input.disabled = true;
+        if (check) {
+          void check.offsetWidth; // reflow, so the animation restarts cleanly
+          check.classList.add("pop");
+        }
+      } else {
+        input.classList.add("is-wrong");
+        input.value = "";
+        void input.offsetWidth; // reflow, so the animation restarts cleanly
+        input.classList.add("wrong-pop");
+      }
+      updateArticlesTally();
+    }, delayMs);
   });
 
-  updateArticlesTally();
+  const cascadeSpan = maxDiagonal * CASCADE_STEP_MS + REVEAL_MS;
 
   if (ticksToFade.length) {
-    const cascadeSpan = maxDiagonal * CASCADE_STEP_MS + REVEAL_MS;
     setTimeout(() => {
       ticksToFade.forEach(check => {
         // release the flip animation's hold on opacity/transform before handing off to a transition
@@ -751,16 +760,19 @@ function checkArticlesTable() {
       });
     }, cascadeSpan + HOLD_AFTER_CASCADE_MS);
   }
-  if (allCorrect) {
-    playTone("correct");
-    els.articlesComplete.hidden = false;
-    els.articlesCheckBtn.hidden = true;
-    els.articlesRingFill.style.strokeDashoffset = "0";
-  } else {
-    playTone("wrong");
-    const firstWrong = els.articlesBody.querySelector(".article-input.is-wrong");
-    if (firstWrong) firstWrong.focus();
-  }
+
+  setTimeout(() => {
+    if (allCorrect) {
+      playTone("correct");
+      els.articlesComplete.hidden = false;
+      els.articlesCheckBtn.hidden = true;
+      els.articlesRingFill.style.strokeDashoffset = "0";
+    } else {
+      playTone("wrong");
+      const firstWrong = els.articlesBody.querySelector(".article-input.is-wrong");
+      if (firstWrong) firstWrong.focus();
+    }
+  }, cascadeSpan);
 }
 
 function fillArticlesForTest(withErrors) {

@@ -536,12 +536,11 @@ body{
 }
 .article-input.is-wrong{
   background:var(--input-bg);
-  box-shadow:inset 0 0 0 2px var(--red);
 }
-.article-input.wrong-pop{ animation:articleWrongPop .8s ease forwards; }
+.article-input.wrong-pop{ animation:articleWrongPop 4s ease forwards; }
 @keyframes articleWrongPop{
   0%{ box-shadow:inset 0 0 0 0 var(--red); }
-  60%{ box-shadow:inset 0 0 0 3px var(--red); }
+  65%{ box-shadow:inset 0 0 0 3px var(--red); }
   100%{ box-shadow:inset 0 0 0 2px var(--red); }
 }
 
@@ -555,11 +554,11 @@ body{
   pointer-events:none;
   backface-visibility:hidden;
 }
-.article-check.pop{ animation:articleCheckFlip .9s cubic-bezier(.3,1.4,.5,1) forwards; }
+.article-check.pop{ animation:articleCheckFlip 4s cubic-bezier(.22,.61,.36,1) forwards; }
 @keyframes articleCheckFlip{
   0%{ opacity:0; transform:perspective(340px) rotateY(-100deg); }
-  50%{ opacity:1; transform:perspective(340px) rotateY(18deg); }
-  75%{ opacity:1; transform:perspective(340px) rotateY(-6deg); }
+  45%{ opacity:0; transform:perspective(340px) rotateY(-58deg); }
+  62%{ opacity:1; transform:perspective(340px) rotateY(-9deg); }
   100%{ opacity:1; transform:perspective(340px) rotateY(0deg); }
 }
 
