@@ -139,6 +139,7 @@ function cacheEls() {
     "screen-landing","modeConjugateBtn","modeOpenClosedBtn","modeArticlesBtn",
     "screen-articles","articlesBackBtn","articlesTally","articlesBody","articlesCheckBtn",
     "articlesComplete","articlesRingFill","articlesResetBtn",
+    "articlesTestFillBtn","articlesTestWrongBtn",
     "screen-setup","screen-setup-oc","screen-drill","screen-results",
     "tenseChips","personChips","voiceChips","classChips",
     "verbList","verbSearch","verbSelectedCount",
@@ -689,12 +690,13 @@ function updateArticlesTally() {
 
 function checkArticlesTable() {
   const inputs = [...els.articlesBody.querySelectorAll(".article-input")];
-  const CASCADE_STEP_MS = 30;   // small + overlapping, so it reads as one ripple rather than discrete pops
-  const REVEAL_MS = 480;        // duration of each cell's own flip/reveal
+  const numCols = ARTICLE_COLUMNS.length;
+  const maxDiagonal = (ARTICLE_ROWS.length - 1) + (numCols - 1); // 7 for a 3x6 grid
+  const REVEAL_MS = 900;         // slower flip/reveal per cell
+  const CASCADE_STEP_MS = 300;   // per diagonal step; 7 steps * 300ms + 900ms reveal = 3000ms total
   const HOLD_AFTER_CASCADE_MS = 1000;
   const FADE_MS = 450;
   let allCorrect = true;
-  let lastIndex = -1;
   const ticksToFade = [];
 
   inputs.forEach((input, i) => {
@@ -705,8 +707,10 @@ function checkArticlesTable() {
     const correctAnswer = row.forms[input.dataset.col];
     const isRight = isCorrect(input.value, correctAnswer, true); // accent-lenient, matching the app default
     input.classList.remove("is-wrong", "is-correct", "wrong-pop");
-    const delay = `${i * CASCADE_STEP_MS}ms`;
-    lastIndex = Math.max(lastIndex, i);
+    const rowIdx = Math.floor(i / numCols);
+    const colIdx = i % numCols;
+    const diagonal = rowIdx + colIdx; // cells on the same top-left-to-bottom-right diagonal flip together
+    const delay = `${diagonal * CASCADE_STEP_MS}ms`;
     if (isRight) {
       input.classList.add("is-correct");
       input.value = correctAnswer;
@@ -733,8 +737,8 @@ function checkArticlesTable() {
 
   updateArticlesTally();
 
-  if (ticksToFade.length && lastIndex >= 0) {
-    const cascadeSpan = lastIndex * CASCADE_STEP_MS + REVEAL_MS;
+  if (ticksToFade.length) {
+    const cascadeSpan = maxDiagonal * CASCADE_STEP_MS + REVEAL_MS;
     setTimeout(() => {
       ticksToFade.forEach(check => {
         // release the flip animation's hold on opacity/transform before handing off to a transition
@@ -759,10 +763,24 @@ function checkArticlesTable() {
   }
 }
 
+function fillArticlesForTest(withErrors) {
+  const inputs = [...els.articlesBody.querySelectorAll(".article-input")];
+  inputs.forEach(input => {
+    if (input.disabled) return;
+    const row = ARTICLE_ROWS.find(r => r.key === input.dataset.row);
+    const correctAnswer = row.forms[input.dataset.col];
+    const makeWrong = withErrors && Math.random() < 0.3;
+    input.value = makeWrong ? "x" : correctAnswer;
+  });
+  checkArticlesTable();
+}
+
 function wireArticlesScreen() {
   els.articlesBackBtn.addEventListener("click", () => goToLanding());
   els.articlesCheckBtn.addEventListener("click", checkArticlesTable);
   els.articlesResetBtn.addEventListener("click", resetArticlesTable);
+  els.articlesTestFillBtn.addEventListener("click", () => fillArticlesForTest(false));
+  els.articlesTestWrongBtn.addEventListener("click", () => fillArticlesForTest(true));
 }
 
 // ===================== setup screen wiring =====================
