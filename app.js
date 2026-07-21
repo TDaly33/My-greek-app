@@ -28,6 +28,16 @@ const PERSON_LABELS = PERSON_META.map(p => p.label);
 
 const IRREGULAR_IDS = new Set(["eimai", "exo", "pao", "leo", "troo", "xero", "prepei"]);
 
+// Modern Greek definite article, verified against multiple independent
+// grammar references. Column order matches the requested case-first
+// grouping: Nom Sg, Nom Pl, Gen Sg, Gen Pl, Acc Sg, Acc Pl.
+const ARTICLE_COLUMNS = ["nomSg", "nomPl", "genSg", "genPl", "accSg", "accPl"];
+const ARTICLE_ROWS = [
+  { key: "masc", label: "Masc", forms: { nomSg: "ο",   nomPl: "οι", genSg: "του",  genPl: "των", accSg: "τον", accPl: "τους" } },
+  { key: "fem",  label: "Fem",  forms: { nomSg: "η",   nomPl: "οι", genSg: "της",  genPl: "των", accSg: "την", accPl: "τις"  } },
+  { key: "neut", label: "Neut", forms: { nomSg: "το",  nomPl: "τα", genSg: "του",  genPl: "των", accSg: "το",  accPl: "τα"   } },
+];
+
 const DIRECTION_META = [
   { key: "open-closed", label: "Open → Closed" },
   { key: "closed-open", label: "Closed → Open" },
@@ -90,6 +100,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   restoreSettings();
   wireLandingScreen();
   wireSetupScreen();
+  wireArticlesScreen();
   wireDrillScreen();
   wireResultsScreen();
   updateStartBarSummary();
@@ -125,7 +136,9 @@ function applyTheme(theme) {
 function cacheEls() {
   const ids = [
     "app","stage",
-    "screen-landing","modeConjugateBtn","modeOpenClosedBtn",
+    "screen-landing","modeConjugateBtn","modeOpenClosedBtn","modeArticlesBtn",
+    "screen-articles","articlesBackBtn","articlesTally","articlesBody","articlesCheckBtn",
+    "articlesComplete","articlesRingFill","articlesResetBtn",
     "screen-setup","screen-setup-oc","screen-drill","screen-results",
     "tenseChips","personChips","voiceChips","classChips",
     "verbList","verbSearch","verbSelectedCount",
@@ -616,6 +629,11 @@ function wireLandingScreen() {
     currentMode = "openclosed";
     showScreen("setup-oc");
   });
+  els.modeArticlesBtn.addEventListener("click", () => {
+    currentMode = "articles";
+    resetArticlesTable();
+    showScreen("articles");
+  });
   els.wordmarkBtn.addEventListener("click", () => {
     const onDrill = !document.getElementById("screen-drill").hidden;
     if (onDrill) {
@@ -625,6 +643,80 @@ function wireLandingScreen() {
       goToLanding();
     }
   });
+}
+
+// ===================== definite articles table =====================
+
+function resetArticlesTable() {
+  els.articlesBody.innerHTML = "";
+  ARTICLE_ROWS.forEach(row => {
+    const tr = document.createElement("tr");
+    const th = document.createElement("th");
+    th.className = "row-label";
+    th.textContent = row.label;
+    tr.appendChild(th);
+    ARTICLE_COLUMNS.forEach(col => {
+      const td = document.createElement("td");
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "article-input";
+      input.dataset.row = row.key;
+      input.dataset.col = col;
+      input.autocapitalize = "off";
+      input.autocorrect = "off";
+      input.spellcheck = false;
+      td.appendChild(input);
+      tr.appendChild(td);
+    });
+    els.articlesBody.appendChild(tr);
+  });
+  els.articlesComplete.hidden = true;
+  els.articlesCheckBtn.hidden = false;
+  updateArticlesTally();
+}
+
+function updateArticlesTally() {
+  const inputs = [...els.articlesBody.querySelectorAll(".article-input")];
+  const correctCount = inputs.filter(i => i.classList.contains("is-correct")).length;
+  els.articlesTally.textContent = `${correctCount} of 18 correct`;
+}
+
+function checkArticlesTable() {
+  const inputs = [...els.articlesBody.querySelectorAll(".article-input")];
+  let allCorrect = true;
+  inputs.forEach(input => {
+    if (input.disabled) return; // already locked in as correct from a previous check
+    const row = ARTICLE_ROWS.find(r => r.key === input.dataset.row);
+    const correctAnswer = row.forms[input.dataset.col];
+    const isRight = isCorrect(input.value, correctAnswer, true); // accent-lenient, matching the app default
+    input.classList.remove("is-wrong", "is-correct");
+    if (isRight) {
+      input.classList.add("is-correct");
+      input.value = correctAnswer;
+      input.disabled = true;
+    } else {
+      input.classList.add("is-wrong");
+      input.value = "";
+      allCorrect = false;
+    }
+  });
+  updateArticlesTally();
+  if (allCorrect) {
+    playTone("correct");
+    els.articlesComplete.hidden = false;
+    els.articlesCheckBtn.hidden = true;
+    els.articlesRingFill.style.strokeDashoffset = "0";
+  } else {
+    playTone("wrong");
+    const firstWrong = els.articlesBody.querySelector(".article-input.is-wrong");
+    if (firstWrong) firstWrong.focus();
+  }
+}
+
+function wireArticlesScreen() {
+  els.articlesBackBtn.addEventListener("click", () => goToLanding());
+  els.articlesCheckBtn.addEventListener("click", checkArticlesTable);
+  els.articlesResetBtn.addEventListener("click", resetArticlesTable);
 }
 
 // ===================== setup screen wiring =====================
@@ -972,7 +1064,7 @@ function subMessage(pct) {
 // ===================== screen switching =====================
 
 function showScreen(name) {
-  ["landing", "setup", "setup-oc", "drill", "results"].forEach(n => {
+  ["landing", "setup", "setup-oc", "articles", "drill", "results"].forEach(n => {
     document.getElementById(`screen-${n}`).hidden = n !== name;
   });
   els.startBar.hidden = name !== "setup" && name !== "setup-oc";

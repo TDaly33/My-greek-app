@@ -43,6 +43,10 @@
           <span class="mode-card-title">Open → Closed</span>
           <span class="mode-card-desc">See the open (imperfective) form of a verb, type its closed (perfective) form — 1st person singular, no particle.</span>
         </button>
+        <button type="button" class="mode-card" id="modeArticlesBtn">
+          <span class="mode-card-title">Definite Articles</span>
+          <span class="mode-card-desc">Fill in every form of "the" — all genders, cases, and numbers, in one table.</span>
+        </button>
       </div>
     </section>
 
@@ -151,6 +155,54 @@
             <input type="checkbox" id="accentLenientOC" checked>
             <span>Ignore accent marks</span>
           </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== DEFINITE ARTICLES SCREEN ===================== -->
+    <section class="screen" id="screen-articles" data-screen="articles" hidden>
+      <div class="articles-head">
+        <button type="button" class="back-btn" id="articlesBackBtn">← Menu</button>
+        <span class="articles-tally" id="articlesTally">0 of 18 correct</span>
+      </div>
+      <div class="card card-articles">
+        <p class="eyebrow">Definite Articles</p>
+        <h1 class="h1" style="margin-bottom:8px;">Fill in every form of "the"</h1>
+        <p class="hint" style="margin-top:0;">Type each form, then check. Anything wrong clears so you can try
+          again — correct ones lock in.</p>
+
+        <div class="articles-table-wrap">
+          <table class="articles-table" id="articlesTable">
+            <thead>
+              <tr>
+                <th class="corner"></th>
+                <th colspan="2">Nom</th>
+                <th colspan="2">Gen</th>
+                <th colspan="2">Acc</th>
+              </tr>
+              <tr>
+                <th class="corner"></th>
+                <th class="sub">Sg</th><th class="sub">Pl</th>
+                <th class="sub">Sg</th><th class="sub">Pl</th>
+                <th class="sub">Sg</th><th class="sub">Pl</th>
+              </tr>
+            </thead>
+            <tbody id="articlesBody"></tbody>
+          </table>
+        </div>
+
+        <button type="button" class="btn-primary" id="articlesCheckBtn">Check answers</button>
+
+        <div class="articles-complete" id="articlesComplete" hidden>
+          <div class="score-ring-wrap">
+            <svg viewBox="0 0 120 120" class="score-ring">
+              <circle cx="60" cy="60" r="52" class="score-ring-track"></circle>
+              <circle cx="60" cy="60" r="52" class="score-ring-fill" id="articlesRingFill"></circle>
+            </svg>
+            <span class="score-ring-pct">✓</span>
+          </div>
+          <p class="results-sub" style="text-align:center;">All 18 correct.</p>
+          <button type="button" class="btn-secondary" id="articlesResetBtn">Clear and try again</button>
         </div>
       </div>
     </section>

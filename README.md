@@ -220,9 +220,18 @@ service worker yet, so it always shows the true current files.
 
 ## How practice sessions work
 
-Opening the app now shows a **mode picker** first — Conjugation Drill (the
-original game) or **Open → Closed** (new). Tap the "Greek Time." wordmark at any
-time to get back to this picker.
+Opening the app now shows a **mode picker** first — three games: Conjugation
+Drill (the original), Open → Closed, and Definite Articles. Tap the
+"Greek Time." wordmark at any time to get back to this picker.
+
+### Definite Articles
+
+A single worksheet: fill in all 18 forms of "the" (Nom/Gen/Acc × Sg/Pl ×
+Masc/Fem/Neut) in one table, then hit Check. Correct cells lock in green;
+wrong ones clear and turn red so you can retry just those, without
+restarting the whole table. No timer, no verb selection — it's always the
+same fixed set of forms, checked as a whole rather than drilled one at a
+time like the other two games.
 
 ### Open → Closed (new)
 
