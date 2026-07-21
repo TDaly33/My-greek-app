@@ -689,8 +689,14 @@ function updateArticlesTally() {
 
 function checkArticlesTable() {
   const inputs = [...els.articlesBody.querySelectorAll(".article-input")];
-  const CASCADE_STEP_MS = 45; // 17 gaps * 45ms = 765ms, + ~650ms anim = well under the 1.5s budget
+  const CASCADE_STEP_MS = 30;   // small + overlapping, so it reads as one ripple rather than discrete pops
+  const REVEAL_MS = 480;        // duration of each cell's own flip/reveal
+  const HOLD_AFTER_CASCADE_MS = 1000;
+  const FADE_MS = 450;
   let allCorrect = true;
+  let lastIndex = -1;
+  const ticksToFade = [];
+
   inputs.forEach((input, i) => {
     if (input.disabled) return; // already locked in as correct from a previous check
     const td = input.closest(".article-cell");
@@ -698,24 +704,49 @@ function checkArticlesTable() {
     const row = ARTICLE_ROWS.find(r => r.key === input.dataset.row);
     const correctAnswer = row.forms[input.dataset.col];
     const isRight = isCorrect(input.value, correctAnswer, true); // accent-lenient, matching the app default
-    input.classList.remove("is-wrong", "is-correct");
+    input.classList.remove("is-wrong", "is-correct", "wrong-pop");
+    const delay = `${i * CASCADE_STEP_MS}ms`;
+    lastIndex = Math.max(lastIndex, i);
     if (isRight) {
       input.classList.add("is-correct");
       input.value = correctAnswer;
       input.disabled = true;
       if (check) {
         check.classList.remove("pop");
-        check.style.animationDelay = `${i * CASCADE_STEP_MS}ms`;
+        check.style.transition = "";
+        check.style.opacity = "";
+        check.style.transform = "";
+        check.style.animationDelay = delay;
         void check.offsetWidth; // reflow, so the animation restarts cleanly
         check.classList.add("pop");
+        ticksToFade.push(check);
       }
     } else {
       input.classList.add("is-wrong");
       input.value = "";
       allCorrect = false;
+      input.style.animationDelay = delay;
+      void input.offsetWidth; // reflow, so the animation restarts cleanly
+      input.classList.add("wrong-pop");
     }
   });
+
   updateArticlesTally();
+
+  if (ticksToFade.length && lastIndex >= 0) {
+    const cascadeSpan = lastIndex * CASCADE_STEP_MS + REVEAL_MS;
+    setTimeout(() => {
+      ticksToFade.forEach(check => {
+        // release the flip animation's hold on opacity/transform before handing off to a transition
+        check.style.opacity = "1";
+        check.style.transform = "perspective(340px) rotateY(0deg)";
+        check.classList.remove("pop");
+        void check.offsetWidth;
+        check.style.transition = `opacity ${FADE_MS}ms ease`;
+        requestAnimationFrame(() => { check.style.opacity = "0"; });
+      });
+    }, cascadeSpan + HOLD_AFTER_CASCADE_MS);
+  }
   if (allCorrect) {
     playTone("correct");
     els.articlesComplete.hidden = false;
