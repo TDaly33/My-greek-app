@@ -372,6 +372,7 @@ body{
 }
 .answer-input.is-wrong{ border-color:var(--red); animation:shake .32s ease; }
 .answer-input.is-correct{ border-color:var(--green); }
+.answer-input.is-revealed{ border-color:var(--teal); color:var(--teal-dark); font-weight:700; }
 @keyframes shake{
   0%, 100%{ transform:translateX(0); }
   20%{ transform:translateX(-7px); }
@@ -395,6 +396,7 @@ body{
   text-decoration:underline; text-underline-offset:3px;
   margin-top:8px; padding:4px;
 }
+.give-up-btn{ color:var(--ink-soft); margin-top:2px; }
 .hint-text{
   font-family:var(--serif); font-size:16px; color:var(--ink-soft);
   margin:6px 0 0;
@@ -446,6 +448,7 @@ body{
 .review-answer .stem{ color:var(--teal-dark); }
 .review-answer .ending{ color:var(--amber); }
 .review-your{ text-decoration:line-through; color:var(--ink-soft); font-size:13px; }
+.review-gave-up{ text-decoration:none; font-style:italic; }
 
 .results-actions{ display:grid; gap:10px; }
 

@@ -149,7 +149,7 @@ function cacheEls() {
     "quitBtn","progressFill","progressLabel","drillMeta","startBar","startBarSummary",
     "scoreLive","timerLive",
     "promptLemma","promptTranslation","promptPerson","revealMeaningBtn",
-    "answerForm","answerInput","checkBtn","hintBtn","hintText","tryAgainText",
+    "answerForm","answerInput","checkBtn","hintBtn","hintText","tryAgainText","giveUpBtn",
     "resultsHeadline","resultsSub","scoreRingFill","scoreRingPct",
     "missedWrap","reviewList","missedOnlyBtn","againSameBtn","newSetBtn",
     "quitModal","quitCancelBtn","quitConfirmBtn",
@@ -948,9 +948,10 @@ function renderQuestion() {
 
   els.answerInput.value = "";
   els.answerInput.disabled = false;
-  els.answerInput.classList.remove("is-wrong", "is-correct");
+  els.answerInput.classList.remove("is-wrong", "is-correct", "is-revealed");
   els.checkBtn.disabled = false;
   els.hintBtn.hidden = isOpenClosed || false;
+  els.giveUpBtn.hidden = !isOpenClosed;
   els.hintText.hidden = true;
   els.tryAgainText.hidden = true;
   els.answerInput.focus();
@@ -977,6 +978,7 @@ function wireDrillScreen() {
     els.hintText.innerHTML = hintHTML(currentItem());
     els.hintText.hidden = false;
   });
+  els.giveUpBtn.addEventListener("click", giveUp);
   els.revealMeaningBtn.addEventListener("click", () => {
     const showing = !els.promptTranslation.hidden;
     els.promptTranslation.hidden = showing;
@@ -1030,6 +1032,25 @@ function checkAnswer() {
     els.tryAgainText.hidden = false;
     els.answerInput.focus();
   }
+}
+
+function giveUp() {
+  if (awaitingAdvance) return;
+  const item = currentItem();
+  if (!questionAlreadyMissed) {
+    session.missed.push({ item, userVal: els.answerInput.value, gaveUp: true });
+    questionAlreadyMissed = true;
+    updateScoreLive();
+  }
+  els.answerInput.value = item.correct;
+  els.answerInput.disabled = true;
+  els.answerInput.classList.remove("is-wrong", "is-correct");
+  els.answerInput.classList.add("is-revealed");
+  els.checkBtn.disabled = true;
+  els.giveUpBtn.hidden = true;
+  els.tryAgainText.hidden = true;
+  awaitingAdvance = true;
+  setTimeout(advance, 900); // a bit longer than the correct-answer pause, so there's time to actually read the revealed form
 }
 
 function advance() {
@@ -1132,17 +1153,20 @@ function finishSession() {
     els.missedWrap.hidden = true;
   } else {
     els.missedWrap.hidden = false;
-    session.missed.forEach(({ item, userVal }) => {
+    session.missed.forEach(({ item, userVal, gaveUp }) => {
       const li = document.createElement("li");
       const voiceLabel = item.voiceSide === "passive" ? " · passive" : "";
       const answerHTML = item.tenseMeta.splittable
         ? stemSplitHTML(item)
         : escapeHTML(item.correct);
       const personPart = item.personIdx === null ? "" : ` · ${escapeHTML(PERSON_LABELS[item.personIdx])}`;
+      const yourAnswerHTML = gaveUp
+        ? `<div class="review-your review-gave-up">Gave up</div>`
+        : (userVal.trim() ? `<div class="review-your">${escapeHTML(userVal.trim())}</div>` : "");
       li.innerHTML = `
         <div>
           <div class="review-meta">${escapeHTML(item.data.lemma)} · ${escapeHTML(item.tenseMeta.label)}${voiceLabel}${personPart}</div>
-          ${userVal.trim() ? `<div class="review-your">${escapeHTML(userVal.trim())}</div>` : ""}
+          ${yourAnswerHTML}
         </div>
         <div class="review-answer">${answerHTML}</div>
       `;
