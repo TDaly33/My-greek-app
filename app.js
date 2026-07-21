@@ -692,12 +692,16 @@ function checkArticlesTable() {
   const inputs = [...els.articlesBody.querySelectorAll(".article-input")];
   const numCols = ARTICLE_COLUMNS.length;
   const maxDiagonal = (ARTICLE_ROWS.length - 1) + (numCols - 1); // 7 for a 3x6 grid
-  const REVEAL_MS = 4000;    // tile flip duration
-  const CASCADE_STEP_MS = 150; // delay before the next diagonal starts
+  const LOCK_FADE_MS = 250;     // instant, simultaneous dim across every open cell — "locking in"
+  const REVEAL_MS = 5000;       // tile flip duration
+  const CASCADE_STEP_MS = 200;  // delay before the next diagonal starts
+  const WRONG_DELAY_MS = 800;   // extra offset so the (fast) red-box reveal lines up with when the (slow) flip actually becomes visible
+  const WRONG_REVEAL_MS = 900;  // duration of the red-box grow animation itself
   const HOLD_AFTER_CASCADE_MS = 1000;
   const FADE_MS = 450;
   let allCorrect = true;
   const ticksToFade = [];
+  const pending = [];
 
   inputs.forEach((input, i) => {
     if (input.disabled) return; // already locked in as correct from a previous check
@@ -709,28 +713,38 @@ function checkArticlesTable() {
     const rowIdx = Math.floor(i / numCols);
     const colIdx = i % numCols;
     const diagonal = rowIdx + colIdx; // cells on the same top-left-to-bottom-right diagonal reveal together
-    const delayMs = diagonal * CASCADE_STEP_MS;
+    const cascadeDelayMs = LOCK_FADE_MS + diagonal * CASCADE_STEP_MS;
 
-    // Reset any leftover state from a previous check, but don't reveal anything yet —
-    // the cell should look like a normal, untouched box until the cascade actually reaches it.
-    input.classList.remove("is-wrong", "is-correct", "wrong-pop");
+    // Reset any leftover state from a previous check, then apply the instant simultaneous
+    // lock-in dim — every open cell fades together right away, before the cascade starts.
+    input.classList.remove("is-wrong", "is-correct", "wrong-pop", "locked");
     if (check) {
       check.classList.remove("pop");
       check.style.transition = "";
       check.style.opacity = "";
       check.style.transform = "";
+      check.style.setProperty("--flip-ms", `${REVEAL_MS}ms`);
     }
+    void input.offsetWidth; // reflow, so the transition restarts cleanly
+    input.classList.add("locked");
 
     if (!isRight) allCorrect = false;
     if (isRight && check) ticksToFade.push(check);
 
-    // Everything below only happens once the cascade reaches this cell's turn — value, class,
-    // and animation are all applied at the same instant, so there's nothing to leak early.
+    // Wrong cells get an extra fixed offset on top of their cascade position, so their
+    // fast red-box reveal lines up with when the slower flip actually becomes visible.
+    const delayMs = isRight ? cascadeDelayMs : cascadeDelayMs + WRONG_DELAY_MS;
+    pending.push({ input, check, isRight, correctAnswer, delayMs });
+  });
+
+  pending.forEach(({ input, check, isRight, correctAnswer, delayMs }) => {
+    // The cascade reaches this cell: correct ones start the tile flip (the overlay is opaque
+    // and covers the input the whole time it's mid-flip — the actual answer text/color isn't
+    // set until later, synced with the fade, so nothing leaks through underneath the flip).
+    // Wrong ones stay flat and just gain a red box around them — no flip.
     setTimeout(() => {
       if (isRight) {
-        input.classList.add("is-correct");
-        input.value = correctAnswer;
-        input.disabled = true;
+        input.disabled = true; // lock it now so it can't be edited mid-flip
         if (check) {
           void check.offsetWidth; // reflow, so the animation restarts cleanly
           check.classList.add("pop");
@@ -740,24 +754,33 @@ function checkArticlesTable() {
         input.value = "";
         void input.offsetWidth; // reflow, so the animation restarts cleanly
         input.classList.add("wrong-pop");
+        updateArticlesTally();
       }
-      updateArticlesTally();
     }, delayMs);
   });
 
-  const cascadeSpan = maxDiagonal * CASCADE_STEP_MS + REVEAL_MS;
+  const correctFinish = maxDiagonal * CASCADE_STEP_MS + REVEAL_MS;
+  const wrongFinish = maxDiagonal * CASCADE_STEP_MS + WRONG_DELAY_MS + WRONG_REVEAL_MS;
+  const cascadeSpan = LOCK_FADE_MS + Math.max(correctFinish, wrongFinish);
 
   if (ticksToFade.length) {
     setTimeout(() => {
       ticksToFade.forEach(check => {
-        // release the flip animation's hold on opacity/transform before handing off to a transition
+        const input = check.closest(".article-cell").querySelector(".article-input");
+        const row = ARTICLE_ROWS.find(r => r.key === input.dataset.row);
+        // Reveal the real answer at the exact moment the tick starts fading, not before.
+        input.classList.remove("locked");
+        input.classList.add("is-correct");
+        input.value = row.forms[input.dataset.col];
+        // release the flip animation's hold on transform before handing off to a transition
         check.style.opacity = "1";
-        check.style.transform = "perspective(340px) rotateY(0deg)";
+        check.style.transform = "rotateY(0deg) scale(1)";
         check.classList.remove("pop");
         void check.offsetWidth;
         check.style.transition = `opacity ${FADE_MS}ms ease`;
         requestAnimationFrame(() => { check.style.opacity = "0"; });
       });
+      updateArticlesTally();
     }, cascadeSpan + HOLD_AFTER_CASCADE_MS);
   }
 
