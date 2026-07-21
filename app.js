@@ -689,8 +689,9 @@ function updateArticlesTally() {
 
 function checkArticlesTable() {
   const inputs = [...els.articlesBody.querySelectorAll(".article-input")];
+  const CASCADE_STEP_MS = 45; // 17 gaps * 45ms = 765ms, + ~650ms anim = well under the 1.5s budget
   let allCorrect = true;
-  inputs.forEach(input => {
+  inputs.forEach((input, i) => {
     if (input.disabled) return; // already locked in as correct from a previous check
     const td = input.closest(".article-cell");
     const check = td ? td.querySelector(".article-check") : null;
@@ -704,6 +705,7 @@ function checkArticlesTable() {
       input.disabled = true;
       if (check) {
         check.classList.remove("pop");
+        check.style.animationDelay = `${i * CASCADE_STEP_MS}ms`;
         void check.offsetWidth; // reflow, so the animation restarts cleanly
         check.classList.add("pop");
       }

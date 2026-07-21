@@ -536,11 +536,13 @@ body{
   opacity:0; transform:scale(.55);
   pointer-events:none;
 }
-.article-check.pop{ animation:articleCheckPop .32s ease forwards; }
+.article-check.pop{ animation:articleCheckPop .65s ease forwards; }
 @keyframes articleCheckPop{
   0%{ opacity:0; transform:scale(.5); }
-  60%{ opacity:1; transform:scale(1.15); }
-  100%{ opacity:1; transform:scale(1); }
+  18%{ opacity:1; transform:scale(1.15); }
+  32%{ opacity:1; transform:scale(1); }
+  70%{ opacity:1; transform:scale(1); }
+  100%{ opacity:0; transform:scale(1); }
 }
 
 .articles-complete{ margin-top:8px; }
