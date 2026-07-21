@@ -511,6 +511,7 @@ body{
   font-family:var(--sans); font-size:12px; font-weight:700;
   color:var(--ink); background:var(--card-soft);
 }
+.article-cell{ position:relative; }
 .article-input{
   width:100%; box-sizing:border-box; border:none; background:var(--input-bg);
   text-align:center; font-family:var(--serif); font-size:16px; color:var(--ink);
@@ -522,7 +523,24 @@ body{
   background:var(--green-soft); color:var(--green); font-weight:700;
 }
 .article-input.is-wrong{
-  background:var(--red-soft); animation:shake .32s ease;
+  background:var(--input-bg);
+  outline:2px solid var(--red); outline-offset:-2px;
+  animation:shake .32s ease;
+}
+
+.article-check{
+  position:absolute; inset:0; border-radius:4px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--green); color:#fff;
+  font-family:var(--serif); font-size:18px; font-weight:700; line-height:1;
+  opacity:0; transform:scale(.55);
+  pointer-events:none;
+}
+.article-check.pop{ animation:articleCheckPop .32s ease forwards; }
+@keyframes articleCheckPop{
+  0%{ opacity:0; transform:scale(.5); }
+  60%{ opacity:1; transform:scale(1.15); }
+  100%{ opacity:1; transform:scale(1); }
 }
 
 .articles-complete{ margin-top:8px; }

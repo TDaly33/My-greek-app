@@ -657,6 +657,7 @@ function resetArticlesTable() {
     tr.appendChild(th);
     ARTICLE_COLUMNS.forEach(col => {
       const td = document.createElement("td");
+      td.className = "article-cell";
       const input = document.createElement("input");
       input.type = "text";
       input.className = "article-input";
@@ -665,7 +666,12 @@ function resetArticlesTable() {
       input.autocapitalize = "off";
       input.autocorrect = "off";
       input.spellcheck = false;
+      const check = document.createElement("div");
+      check.className = "article-check";
+      check.setAttribute("aria-hidden", "true");
+      check.textContent = "✓";
       td.appendChild(input);
+      td.appendChild(check);
       tr.appendChild(td);
     });
     els.articlesBody.appendChild(tr);
@@ -686,6 +692,8 @@ function checkArticlesTable() {
   let allCorrect = true;
   inputs.forEach(input => {
     if (input.disabled) return; // already locked in as correct from a previous check
+    const td = input.closest(".article-cell");
+    const check = td ? td.querySelector(".article-check") : null;
     const row = ARTICLE_ROWS.find(r => r.key === input.dataset.row);
     const correctAnswer = row.forms[input.dataset.col];
     const isRight = isCorrect(input.value, correctAnswer, true); // accent-lenient, matching the app default
@@ -694,6 +702,11 @@ function checkArticlesTable() {
       input.classList.add("is-correct");
       input.value = correctAnswer;
       input.disabled = true;
+      if (check) {
+        check.classList.remove("pop");
+        void check.offsetWidth; // reflow, so the animation restarts cleanly
+        check.classList.add("pop");
+      }
     } else {
       input.classList.add("is-wrong");
       input.value = "";
