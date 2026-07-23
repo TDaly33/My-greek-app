@@ -81,6 +81,7 @@ let timerHandle = null;
 let els = {};
 let currentMode = null;   // "conjugate" | "openclosed"
 let quitDestination = "setup";
+let articlesEnterMode = "row"; // "row" | "col" — order Enter key advances through the articles table
 
 // ===================== boot =====================
 
@@ -138,7 +139,7 @@ function cacheEls() {
     "app","stage",
     "screen-landing","modeConjugateBtn","modeOpenClosedBtn","modeArticlesBtn",
     "screen-articles","articlesBackBtn","articlesTally","articlesBody","articlesCheckBtn",
-    "articlesComplete","articlesRingFill","articlesResetBtn",
+    "articlesComplete","articlesRingFill","articlesResetBtn","enterNavSwitch",
     "articlesTestFillBtn","articlesTestWrongBtn",
     "screen-setup","screen-setup-oc","screen-drill","screen-results",
     "tenseChips","personChips","voiceChips","classChips",
@@ -414,6 +415,7 @@ function saveSettings() {
       minutesOC: els.timerMinutesOC.value,
       lenientOC: els.accentLenientOC.checked,
       direction: singleSelected(els.directionChips),
+      enterNavMode: articlesEnterMode,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch (e) { /* storage unavailable — ignore */ }
@@ -456,6 +458,7 @@ function restoreSettings() {
   if (s.direction) setSingle(els.directionChips, s.direction);
   if (s.minutesOC) els.timerMinutesOC.value = s.minutesOC;
   if (typeof s.lenientOC === "boolean") els.accentLenientOC.checked = s.lenientOC;
+  if (s.enterNavMode === "row" || s.enterNavMode === "col") setArticlesEnterMode(s.enterNavMode);
 }
 function setSingle(container, key) {
   [...container.children].forEach(c => c.setAttribute("aria-pressed", String(c.dataset.key === key)));
@@ -806,12 +809,51 @@ function fillArticlesForTest(withErrors) {
   checkArticlesTable();
 }
 
+function articleInputsOrdered() {
+  const inputs = [...els.articlesBody.querySelectorAll(".article-input")];
+  if (articlesEnterMode !== "col") return inputs; // DOM order is already row-wise
+  const numCols = ARTICLE_COLUMNS.length;
+  const byCol = [];
+  for (let c = 0; c < numCols; c++) {
+    for (let r = 0; r < ARTICLE_ROWS.length; r++) byCol.push(inputs[r * numCols + c]);
+  }
+  return byCol;
+}
+
+function focusNextArticleCell(current) {
+  const ordered = articleInputsOrdered();
+  const idx = ordered.indexOf(current);
+  if (idx === -1) return;
+  for (let step = 1; step <= ordered.length; step++) {
+    const next = ordered[(idx + step) % ordered.length];
+    if (next && !next.disabled) { next.focus(); next.select(); return; }
+  }
+}
+
+function setArticlesEnterMode(mode) {
+  articlesEnterMode = mode;
+  [...els.enterNavSwitch.children].forEach(c => c.setAttribute("aria-pressed", String(c.dataset.mode === mode)));
+}
+
 function wireArticlesScreen() {
   els.articlesBackBtn.addEventListener("click", () => goToLanding());
   els.articlesCheckBtn.addEventListener("click", checkArticlesTable);
   els.articlesResetBtn.addEventListener("click", resetArticlesTable);
   els.articlesTestFillBtn.addEventListener("click", () => fillArticlesForTest(false));
   els.articlesTestWrongBtn.addEventListener("click", () => fillArticlesForTest(true));
+  els.articlesBody.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    const input = e.target.closest(".article-input");
+    if (!input) return;
+    e.preventDefault();
+    focusNextArticleCell(input);
+  });
+  els.enterNavSwitch.addEventListener("click", e => {
+    const btn = e.target.closest(".enter-nav-option");
+    if (!btn) return;
+    setArticlesEnterMode(btn.dataset.mode);
+    saveSettings();
+  });
 }
 
 // ===================== setup screen wiring =====================
