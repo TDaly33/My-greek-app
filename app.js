@@ -172,11 +172,7 @@ async function loadData() {
 
 function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js")
-      .then(() => { els.topbarStatus.textContent = "offline-ready"; })
-      .catch(() => { els.topbarStatus.textContent = "online only"; });
-  } else {
-    els.topbarStatus.textContent = "online only";
+    navigator.serviceWorker.register("sw.js");
   }
 }
 
