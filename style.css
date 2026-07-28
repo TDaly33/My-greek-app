@@ -445,7 +445,8 @@ body{
   -webkit-overflow-scrolling:touch;
 }
 .numbers-tile-grid{
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(76px, 1fr));
+  --tile-cols: 3;
+  display:grid; grid-template-columns:repeat(var(--tile-cols), 1fr);
   gap:10px; padding:2px;
 }
 .number-tile{

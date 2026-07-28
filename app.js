@@ -43,7 +43,11 @@ const NUMBERS_MODE_META = [
   { key: "words-digits", label: "Words → Digits" },
   { key: "random",       label: "Random" },
 ];
-const NUMBERS_TILE_COUNTS = [4, 8, 12, 16, 20, 24];
+// Explicit column count per tile count, so the rendered grid always forms the
+// intended rectangle (e.g. 9 -> 3x3) instead of letting the browser infer
+// columns from viewport width via auto-fill.
+const NUMBERS_TILE_GRID_COLS = { 4: 2, 9: 3, 12: 3, 16: 4, 20: 4, 24: 4 };
+const NUMBERS_TILE_COUNTS = Object.keys(NUMBERS_TILE_GRID_COLS).map(Number);
 
 const DIRECTION_META = [
   { key: "open-closed", label: "Open → Closed" },
@@ -225,7 +229,7 @@ function buildFilterUI() {
 
   els.numbersTileChips.innerHTML = "";
   NUMBERS_TILE_COUNTS.forEach(n => {
-    els.numbersTileChips.appendChild(makeChip(String(n), String(n), n === 8));
+    els.numbersTileChips.appendChild(makeChip(String(n), String(n), n === 9));
   });
   els.numbersTileChips.addEventListener("click", e => onChipClick(e, true));
   els.numbersHardMode.addEventListener("change", saveSettings);
@@ -455,7 +459,7 @@ function saveSettings() {
 
 function updateStartBarSummary() {
   if (currentMode === "numbers") {
-    const tileCount = singleSelected(els.numbersTileChips) || "8";
+    const tileCount = singleSelected(els.numbersTileChips) || "9";
     const hard = els.numbersHardMode.checked;
     els.startBarSummary.textContent = `Endless · ${tileCount} tiles · ${hard ? "Hard" : "Easy"}`;
     return;
@@ -498,7 +502,7 @@ function restoreSettings() {
   if (typeof s.lenientOC === "boolean") els.accentLenientOC.checked = s.lenientOC;
   if (s.enterNavMode === "row" || s.enterNavMode === "col") setArticlesEnterMode(s.enterNavMode);
   if (s.numbersMode) setSingle(els.numbersModeChips, s.numbersMode);
-  if (s.numbersTiles) setSingle(els.numbersTileChips, s.numbersTiles);
+  if (s.numbersTiles && NUMBERS_TILE_GRID_COLS[s.numbersTiles]) setSingle(els.numbersTileChips, s.numbersTiles);
   if (typeof s.numbersHard === "boolean") els.numbersHardMode.checked = s.numbersHard;
 }
 function setSingle(container, key) {
@@ -938,7 +942,7 @@ function renderNumbersRound() {
   const direction = setupMode === "random"
     ? (Math.random() < 0.5 ? "digits-words" : "words-digits")
     : setupMode;
-  const tileCount = parseInt(singleSelected(els.numbersTileChips) || "8", 10);
+  const tileCount = parseInt(singleSelected(els.numbersTileChips) || "9", 10);
   const hardMode = els.numbersHardMode.checked;
 
   const target = 1 + Math.floor(Math.random() * 100);
@@ -951,6 +955,7 @@ function renderNumbersRound() {
     ? String(target)
     : numbersData[String(target)];
 
+  els.numbersTileGrid.style.setProperty("--tile-cols", NUMBERS_TILE_GRID_COLS[tileCount]);
   els.numbersTileGrid.innerHTML = "";
   tiles.forEach(n => {
     const btn = document.createElement("button");

@@ -1,4 +1,4 @@
-const CACHE_NAME = "greek-time-v37";
+const CACHE_NAME = "greek-time-v38";
 const ASSETS = [
   "./",
   "./index.html",
