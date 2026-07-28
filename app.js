@@ -38,6 +38,13 @@ const ARTICLE_ROWS = [
   { key: "neut", label: "Neut", forms: { nomSg: "το",  nomPl: "τα", genSg: "του",  genPl: "των", accSg: "το",  accPl: "τα"   } },
 ];
 
+const NUMBERS_MODE_META = [
+  { key: "digits-words", label: "Digits → Words" },
+  { key: "words-digits", label: "Words → Digits" },
+  { key: "random",       label: "Random" },
+];
+const NUMBERS_TILE_COUNTS = [4, 8, 12, 16, 20, 24];
+
 const DIRECTION_META = [
   { key: "open-closed", label: "Open → Closed" },
   { key: "closed-open", label: "Closed → Open" },
@@ -75,6 +82,7 @@ const OC_OPEN_FORM_OVERRIDE = { pao: "πηγαίνω" };
 
 let verbsIndex = [];      // [{id, lemma, translation, class, voice}]
 let verbsData = {};       // id -> conjugated object
+let numbersData = {};     // "1".."100" -> Greek word
 let selectedVerbIds = new Set();
 let session = null;       // current drill session
 let timerHandle = null;
@@ -82,6 +90,9 @@ let els = {};
 let currentMode = null;   // "conjugate" | "openclosed"
 let quitDestination = "setup";
 let articlesEnterMode = "row"; // "row" | "col" — order Enter key advances through the articles table
+let numbersRound = null;          // { target, direction } for the round currently on screen
+let numbersRoundLocked = false;   // true once the correct tile's been tapped, until the next round renders
+let numbersWrongPlayedThisRound = false;
 
 // ===================== boot =====================
 
@@ -103,6 +114,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   wireSetupScreen();
   wireArticlesScreen();
   wireDrillScreen();
+  wireNumbersScreen();
   wireResultsScreen();
   updateStartBarSummary();
   els.verbTotalFoot.textContent = `${verbsIndex.length} verbs in the bank`;
@@ -137,11 +149,13 @@ function applyTheme(theme) {
 function cacheEls() {
   const ids = [
     "app","stage",
-    "screen-landing","modeConjugateBtn","modeOpenClosedBtn","modeArticlesBtn",
+    "screen-landing","modeConjugateBtn","modeOpenClosedBtn","modeArticlesBtn","modeNumbersBtn",
     "screen-articles","articlesBackBtn","articlesTally","articlesBody","articlesCheckBtn",
     "articlesComplete","articlesRingFill","articlesResetBtn","enterNavSwitch",
     "articlesTestFillBtn","articlesTestWrongBtn",
-    "screen-setup","screen-setup-oc","screen-drill","screen-results",
+    "screen-setup","screen-setup-oc","screen-setup-numbers","screen-drill","screen-numbers-drill","screen-results",
+    "numbersModeChips","numbersTileChips","numbersHardMode",
+    "numbersQuitBtn","numbersMeta","numbersPrompt","numbersTileGrid",
     "tenseChips","personChips","voiceChips","classChips",
     "verbList","verbSearch","verbSelectedCount",
     "classChipsOC","verbListOC","verbSearchOC","verbSelectedCountOC","directionChips",
@@ -161,14 +175,16 @@ function cacheEls() {
 function toCamel(id) { return id.replace(/-([a-z])/g, (_, c) => c.toUpperCase()); }
 
 async function loadData() {
-  const [idxRes, dataRes] = await Promise.all([
+  const [idxRes, dataRes, numbersRes] = await Promise.all([
     fetch("verbs_index.json"),
     fetch("verbs_conjugated.json"),
+    fetch("numbers_el.json"),
   ]);
   verbsIndex = await idxRes.json();
   const arr = await dataRes.json();
   arr.forEach(v => { verbsData[v.id] = v; });
   selectedVerbIds = new Set(verbsIndex.map(v => v.id));
+  numbersData = await numbersRes.json();
 }
 
 function registerServiceWorker() {
@@ -200,6 +216,19 @@ function buildFilterUI() {
     els.directionChips.appendChild(makeChip(d.key, d.label, i === 0));
   });
   els.directionChips.addEventListener("click", e => onChipClick(e, true));
+
+  els.numbersModeChips.innerHTML = "";
+  NUMBERS_MODE_META.forEach((m, i) => {
+    els.numbersModeChips.appendChild(makeChip(m.key, m.label, i === 0));
+  });
+  els.numbersModeChips.addEventListener("click", e => onChipClick(e, true));
+
+  els.numbersTileChips.innerHTML = "";
+  NUMBERS_TILE_COUNTS.forEach(n => {
+    els.numbersTileChips.appendChild(makeChip(String(n), String(n), n === 8));
+  });
+  els.numbersTileChips.addEventListener("click", e => onChipClick(e, true));
+  els.numbersHardMode.addEventListener("change", saveSettings);
 
   [els.classChips, els.classChipsOC].forEach(container => {
     container.innerHTML = "";
@@ -416,12 +445,21 @@ function saveSettings() {
       lenientOC: els.accentLenientOC.checked,
       direction: singleSelected(els.directionChips),
       enterNavMode: articlesEnterMode,
+      numbersMode: singleSelected(els.numbersModeChips),
+      numbersTiles: singleSelected(els.numbersTileChips),
+      numbersHard: els.numbersHardMode.checked,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch (e) { /* storage unavailable — ignore */ }
 }
 
 function updateStartBarSummary() {
+  if (currentMode === "numbers") {
+    const tileCount = singleSelected(els.numbersTileChips) || "8";
+    const hard = els.numbersHardMode.checked;
+    els.startBarSummary.textContent = `Endless · ${tileCount} tiles · ${hard ? "Hard" : "Easy"}`;
+    return;
+  }
   if (currentMode === "openclosed") {
     const eligible = [...selectedVerbIds].filter(id => !OC_EXCLUDED_IDS.has(id)).length;
     els.startBarSummary.textContent = `${eligible} verb${eligible === 1 ? "" : "s"}`;
@@ -459,6 +497,9 @@ function restoreSettings() {
   if (s.minutesOC) els.timerMinutesOC.value = s.minutesOC;
   if (typeof s.lenientOC === "boolean") els.accentLenientOC.checked = s.lenientOC;
   if (s.enterNavMode === "row" || s.enterNavMode === "col") setArticlesEnterMode(s.enterNavMode);
+  if (s.numbersMode) setSingle(els.numbersModeChips, s.numbersMode);
+  if (s.numbersTiles) setSingle(els.numbersTileChips, s.numbersTiles);
+  if (typeof s.numbersHard === "boolean") els.numbersHardMode.checked = s.numbersHard;
 }
 function setSingle(container, key) {
   [...container.children].forEach(c => c.setAttribute("aria-pressed", String(c.dataset.key === key)));
@@ -634,8 +675,13 @@ function wireLandingScreen() {
     resetArticlesTable();
     showScreen("articles");
   });
+  els.modeNumbersBtn.addEventListener("click", () => {
+    currentMode = "numbers";
+    showScreen("setup-numbers");
+  });
   els.wordmarkBtn.addEventListener("click", () => {
-    const onDrill = !document.getElementById("screen-drill").hidden;
+    const onDrill = !document.getElementById("screen-drill").hidden
+      || !document.getElementById("screen-numbers-drill").hidden;
     if (onDrill) {
       quitDestination = "landing";
       els.quitModal.hidden = false;
@@ -856,12 +902,99 @@ function wireArticlesScreen() {
   });
 }
 
+// ===================== numbers 1-100 drill =====================
+
+function startNumbersSession() {
+  saveSettings();
+  showScreen("numbers-drill");
+  renderNumbersRound();
+}
+
+function pickDistractors(target, count, hardMode) {
+  if (!hardMode) {
+    const pool = [];
+    for (let n = 1; n <= 100; n++) if (n !== target) pool.push(n);
+    return shuffle(pool).slice(0, count);
+  }
+  // Nearest-neighbor spiral outward from the target, clamped to 1-100 — so a
+  // target near an edge still fills up with the closest available numbers
+  // instead of falling back to wide-random ones.
+  const near = [];
+  for (let radius = 1; near.length < count && radius <= 100; radius++) {
+    for (const n of [target - radius, target + radius]) {
+      if (n < 1 || n > 100) continue;
+      near.push(n);
+      if (near.length >= count) break;
+    }
+  }
+  return shuffle(near);
+}
+
+function renderNumbersRound() {
+  numbersRoundLocked = false;
+  numbersWrongPlayedThisRound = false;
+
+  const setupMode = singleSelected(els.numbersModeChips) || "digits-words";
+  const direction = setupMode === "random"
+    ? (Math.random() < 0.5 ? "digits-words" : "words-digits")
+    : setupMode;
+  const tileCount = parseInt(singleSelected(els.numbersTileChips) || "8", 10);
+  const hardMode = els.numbersHardMode.checked;
+
+  const target = 1 + Math.floor(Math.random() * 100);
+  const distractors = pickDistractors(target, tileCount - 1, hardMode);
+  const tiles = shuffle([target, ...distractors]);
+  numbersRound = { target, direction };
+
+  els.numbersMeta.textContent = NUMBERS_MODE_META.find(m => m.key === direction).label;
+  els.numbersPrompt.textContent = direction === "digits-words"
+    ? String(target)
+    : numbersData[String(target)];
+
+  els.numbersTileGrid.innerHTML = "";
+  tiles.forEach(n => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "number-tile";
+    btn.dataset.value = String(n);
+    btn.textContent = direction === "digits-words" ? numbersData[String(n)] : String(n);
+    els.numbersTileGrid.appendChild(btn);
+  });
+}
+
+function wireNumbersScreen() {
+  els.numbersTileGrid.addEventListener("click", e => {
+    const btn = e.target.closest(".number-tile");
+    if (!btn || btn.disabled || numbersRoundLocked) return;
+    const value = parseInt(btn.dataset.value, 10);
+    if (value === numbersRound.target) {
+      numbersRoundLocked = true;
+      playTone("correct");
+      btn.classList.add("is-tile-correct");
+      [...els.numbersTileGrid.children].forEach(t => { t.disabled = true; });
+      setTimeout(renderNumbersRound, 420);
+    } else {
+      btn.disabled = true;
+      btn.classList.add("is-tile-wrong");
+      if (!numbersWrongPlayedThisRound) {
+        playTone("wrong");
+        numbersWrongPlayedThisRound = true;
+      }
+    }
+  });
+  els.numbersQuitBtn.addEventListener("click", () => {
+    quitDestination = "setup-numbers";
+    els.quitModal.hidden = false;
+  });
+}
+
 // ===================== setup screen wiring =====================
 
 function wireSetupScreen() {
   els.startBtn.addEventListener("click", () => {
     els.setupError.hidden = true;
     if (currentMode === "openclosed") return startOpenClosedSession();
+    if (currentMode === "numbers") return startNumbersSession();
     return startConjugateSession();
   });
 }
@@ -1225,11 +1358,11 @@ function subMessage(pct) {
 // ===================== screen switching =====================
 
 function showScreen(name) {
-  ["landing", "setup", "setup-oc", "articles", "drill", "results"].forEach(n => {
+  ["landing", "setup", "setup-oc", "setup-numbers", "articles", "drill", "numbers-drill", "results"].forEach(n => {
     document.getElementById(`screen-${n}`).hidden = n !== name;
   });
-  els.startBar.hidden = name !== "setup" && name !== "setup-oc";
-  document.body.classList.toggle("drill-active", name === "drill");
+  els.startBar.hidden = name !== "setup" && name !== "setup-oc" && name !== "setup-numbers";
+  document.body.classList.toggle("drill-active", name === "drill" || name === "numbers-drill");
   window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
 }
 

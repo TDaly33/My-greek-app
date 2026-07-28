@@ -1,4 +1,4 @@
-const CACHE_NAME = "greek-time-v36";
+const CACHE_NAME = "greek-time-v37";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const ASSETS = [
   "./manifest.json",
   "./verbs_index.json",
   "./verbs_conjugated.json",
+  "./numbers_el.json",
   "./icon-192.png",
   "./icon-512.png",
   "./Lora.woff",

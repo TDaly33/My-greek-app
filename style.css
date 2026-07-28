@@ -288,6 +288,7 @@ body{
 /* ============ drill screen ============ */
 .screen[data-screen="drill"]{ width:100%; flex-direction:column; align-items:center; }
 .screen[data-screen="articles"]{ width:100%; flex-direction:column; align-items:center; }
+.screen[data-screen="numbers-drill"]{ width:100%; flex-direction:column; align-items:center; }
 .drill-sticky-header{
   position:sticky; top:0; z-index:9;
   width:100%;
@@ -435,6 +436,45 @@ body{
 .stem-split .note{
   display:block; font-family:var(--sans); font-size:11px; letter-spacing:.06em;
   text-transform:uppercase; color:var(--ink-soft); margin-top:6px; font-weight:600;
+}
+
+/* ============ numbers drill ============ */
+.card-numbers .prompt-line{ margin-bottom:2px; }
+.numbers-tile-wrap{
+  max-height:52vh; overflow-y:auto; margin:18px 0 4px;
+  -webkit-overflow-scrolling:touch;
+}
+.numbers-tile-grid{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(76px, 1fr));
+  gap:10px; padding:2px;
+}
+.number-tile{
+  appearance:none; border:1px solid var(--hairline); background:var(--card-soft);
+  color:var(--ink); font:inherit; font-family:var(--serif); font-size:17px; font-weight:600;
+  border-radius:12px; padding:14px 8px; cursor:pointer; text-align:center;
+  transition:background .15s ease, color .15s ease, border-color .15s ease, transform .08s ease;
+}
+.number-tile:active{ transform:scale(.97); }
+.number-tile:disabled{ cursor:default; }
+.number-tile.is-tile-correct{
+  background:var(--green-soft); color:var(--green); border-color:var(--green);
+  font-weight:700; animation:tileCorrectPop .32s ease;
+}
+.number-tile.is-tile-wrong{
+  background:var(--red-soft); color:var(--red); border-color:var(--red);
+  opacity:.6; animation:tileWrongShake .32s ease;
+}
+@keyframes tileCorrectPop{
+  0%{ transform:scale(1); }
+  40%{ transform:scale(1.06); }
+  100%{ transform:scale(1); }
+}
+@keyframes tileWrongShake{
+  0%, 100%{ transform:translateX(0); }
+  20%{ transform:translateX(-5px); }
+  40%{ transform:translateX(4px); }
+  60%{ transform:translateX(-3px); }
+  80%{ transform:translateX(2px); }
 }
 
 /* ============ results screen ============ */

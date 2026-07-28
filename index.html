@@ -47,6 +47,10 @@
           <span class="mode-card-title">Definite Articles</span>
           <span class="mode-card-desc">Fill in every form of "the" — all genders, cases, and numbers, in one table.</span>
         </button>
+        <button type="button" class="mode-card" id="modeNumbersBtn">
+          <span class="mode-card-title">Numbers 1–100</span>
+          <span class="mode-card-desc">See a digit or its Greek word, tap the matching tile. Endless — no score, no timer.</span>
+        </button>
       </div>
     </section>
 
@@ -155,6 +159,55 @@
             <input type="checkbox" id="accentLenientOC" checked>
             <span>Ignore accent marks</span>
           </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SETUP SCREEN (numbers) ===================== -->
+    <section class="screen" id="screen-setup-numbers" data-screen="setup-numbers" hidden>
+      <div class="card">
+        <button type="button" class="link-btn back-to-landing" data-goto="landing">← All games</button>
+        <p class="eyebrow">build a practice set</p>
+        <h1 class="h1">Numbers 1–100</h1>
+        <p class="hint" style="margin-top:0;">Endless practice — tap the tile that matches. No score, no timer,
+          just keep going.</p>
+
+        <div class="field-group">
+          <h2 class="h2"><span class="step-num">1</span>Mode</h2>
+          <div class="chip-grid" id="numbersModeChips"></div>
+        </div>
+
+        <div class="field-group">
+          <h2 class="h2"><span class="step-num">2</span>Tiles per round</h2>
+          <div class="chip-grid" id="numbersTileChips"></div>
+        </div>
+
+        <div class="field-group" style="margin-bottom:4px;">
+          <h2 class="h2"><span class="step-num">3</span>Difficulty</h2>
+          <label class="toggle">
+            <input type="checkbox" id="numbersHardMode">
+            <span>Hard mode — distractors close to the target number</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== NUMBERS DRILL SCREEN ===================== -->
+    <section class="screen" id="screen-numbers-drill" data-screen="numbers-drill" hidden>
+      <div class="drill-sticky-header">
+        <div class="drill-head">
+          <button type="button" class="back-btn" id="numbersQuitBtn">← Menu</button>
+        </div>
+      </div>
+
+      <div class="card card-drill card-numbers">
+        <p class="eyebrow" id="numbersMeta">Digits → Words</p>
+        <h1 class="prompt-line">
+          <span class="prompt-lemma" id="numbersPrompt">47</span>
+        </h1>
+
+        <div class="numbers-tile-wrap">
+          <div class="numbers-tile-grid" id="numbersTileGrid"></div>
         </div>
       </div>
     </section>
